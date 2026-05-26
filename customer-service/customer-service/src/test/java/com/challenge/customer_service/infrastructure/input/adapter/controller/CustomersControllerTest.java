@@ -11,7 +11,6 @@ import com.challenge.customer_service.infrastructure.input.adapter.rest.customer
 import com.challenge.customer_service.infrastructure.input.adapter.rest.customer_service.bean.PagedCustomersResponse;
 import com.challenge.customer_service.infrastructure.input.adapter.rest.customer_service.bean.UpdateCustomerRequest;
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -69,7 +68,7 @@ class CustomersControllerTest {
 
         StepVerifier.create(controller.createCustomer(req, exchange))
                 .assertNext(resp -> {
-                    assertEquals(HttpStatus.CREATED, resp.getStatusCode());
+                    assertEquals(201, resp.getStatusCodeValue());
                     assertNotNull(resp.getBody());
                     assertEquals(saved.getId(), resp.getBody().getId());
 
@@ -95,7 +94,7 @@ class CustomersControllerTest {
 
         StepVerifier.create(controller.getCustomerById(id, exchange))
                 .assertNext(resp -> {
-                    assertEquals(HttpStatus.OK, resp.getStatusCode());
+                    assertEquals(200, resp.getStatusCodeValue());
                     assertNotNull(resp.getBody());
                     assertEquals(id, resp.getBody().getId());
                 })
@@ -112,7 +111,7 @@ class CustomersControllerTest {
         when(customerInputPort.delete(id)).thenReturn(Mono.empty());
 
         StepVerifier.create(controller.deleteCustomer(id, exchange))
-                .assertNext(resp -> assertEquals(204, resp.getStatusCode()))
+                .assertNext(resp -> assertEquals(204, resp.getStatusCodeValue()))
                 .verifyComplete();
 
         verify(customerInputPort).delete(id);
@@ -135,7 +134,7 @@ class CustomersControllerTest {
 
         StepVerifier.create(controller.updateCustomer(id, req, exchange))
                 .assertNext(resp -> {
-                    assertEquals(HttpStatus.OK, resp.getStatusCode());
+                    assertEquals(200, resp.getStatusCodeValue());
                     assertNotNull(resp.getBody());
                     assertEquals(id, resp.getBody().getId());
                 })
@@ -162,7 +161,7 @@ class CustomersControllerTest {
 
         StepVerifier.create(controller.listCustomers(null, null, exchange))
                 .assertNext(resp -> {
-assertEquals(200, resp.getStatusCode());
+                    assertEquals(200, resp.getStatusCodeValue());
                     assertSame(response, resp.getBody());
                 })
                 .verifyComplete();
@@ -187,7 +186,7 @@ assertEquals(200, resp.getStatusCode());
         when(customerRestMapper.toPagedResponse(paged)).thenReturn(new PagedCustomersResponse());
 
         StepVerifier.create(controller.listCustomers(page, size, exchange))
-                .assertNext(resp -> assertEquals(200, resp.getStatusCode()))
+                .assertNext(resp -> assertEquals(200, resp.getStatusCodeValue()))
                 .verifyComplete();
 
         verify(customerInputPort).list(page, size);

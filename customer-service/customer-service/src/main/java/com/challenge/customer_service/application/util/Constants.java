@@ -1,8 +1,6 @@
 package com.challenge.customer_service.application.util;
 
 public class Constants {
-public static final String URI_PARAMETER = "uri.parameter"; // Nuevo parámetro configurable
-public static final String URI = System.getProperty(URI_PARAMETER, "http://default.example.com/api");
     public static final String PAGE_LENGTH = "page must be greater than or equal to 0";
     public static final String SIZE_LENGTH = "size must be between 1 and 100";
     public static final String CUSTOMER_REQUIRED = "customer is required";

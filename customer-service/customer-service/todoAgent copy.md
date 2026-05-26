@@ -206,8 +206,6 @@ Solo si la tarea es `AUTO`, continúa con la implementación.
 Usa `Revisión manual` cuando la tarea requiera criterio humano, decisión funcional,
 aprobación externa o implique un riesgo alto que no pueda resolverse con seguridad.
 
-Si la tarea se marca como `Revisión manual`, pasa a la siguiente tarea y repite el paso 3.
-
 Usa `Bloqueada` cuando la tarea no pueda ejecutarse por una causa operativa objetiva,
 por ejemplo:
 - falta de archivos necesarios
@@ -267,7 +265,6 @@ Reglas obligatorias:
 - respeta convenciones del proyecto
 - si la tarea requiere crear archivos, usa `edit/createFile`
 - documenta brevemente qué archivos fueron modificados y por qué
-- si la modificación del archivo falla tras tres intentos, marcala como `Bloqueada` y prosigue a la siguiente tarea desde el paso 3.
 
 Antes de modificar cualquier archivo, guarda una copia del contenido original
 de cada archivo afectado. Si la tarea falla tras 3 intentos o debe revertirse,
