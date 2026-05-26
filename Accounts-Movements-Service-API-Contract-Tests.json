@@ -1,0 +1,571 @@
+{
+  "info": {
+    "name": "Accounts & Movements Service API - Contract Tests",
+    "_postman_id": "3d7f6c7f-610c-49ea-8c70-7b1743b4f9b4",
+    "description": "Collection generated from accounts_movements_service openapi.yaml and adjusted to BaseDatos.sql seed data. Includes OK and error cases for Accounts, Movements and Reports endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8081" },
+
+    { "key": "existingCustomerIdJose", "value": "11111111-1111-1111-1111-111111111111" },
+    { "key": "existingCustomerIdMarianela", "value": "22222222-2222-2222-2222-222222222222" },
+    { "key": "existingCustomerIdJuan", "value": "33333333-3333-3333-3333-333333333333" },
+    { "key": "nonExistingCustomerId", "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" },
+
+    { "key": "seedAccountIdJose_478758", "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1" },
+    { "key": "seedAccountIdMarianela_225487", "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2" },
+    { "key": "seedAccountIdJuan_495878", "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3" },
+    { "key": "seedAccountIdMarianela_496825", "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4" },
+
+    { "key": "seedMovementIdJoseDebit575", "value": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1" },
+    { "key": "seedMovementIdMarianelaCredit600", "value": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2" },
+    { "key": "seedMovementIdJuanCredit150", "value": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb3" },
+    { "key": "seedMovementIdMarianelaDebit540", "value": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb4" },
+
+    { "key": "accountId", "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2" },
+    { "key": "movementId", "value": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2" },
+
+    { "key": "nonExistingAccountId", "value": "cccccccc-cccc-cccc-cccc-cccccccccccc" },
+    { "key": "nonExistingMovementId", "value": "dddddddd-dddd-dddd-dddd-dddddddddddd" },
+
+    { "key": "startDate", "value": "2022-02-01" },
+    { "key": "endDate", "value": "2022-02-28" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.variables.set('ts', new Date().toISOString());"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Accounts - OK",
+      "item": [
+        {
+          "name": "List accounts (default pagination) - 200",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response is PagedAccountsResponse-like', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List accounts (filter by customerId=Marianela) - 200",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/accounts?customerId={{existingCustomerIdMarianela}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts"],
+              "query": [{ "key": "customerId", "value": "{{existingCustomerIdMarianela}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                "pm.test('All returned accounts belong to Marianela', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json.content).to.be.an('array');",
+                "  json.content.forEach(a => pm.expect(a.customerId).to.eql(pm.collectionVariables.get('existingCustomerIdMarianela')));",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Get seeded account (Marianela 225487) - 200",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{seedAccountIdMarianela_225487}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{seedAccountIdMarianela_225487}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                "pm.test('AccountResponse shape', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('id');",
+                "  pm.expect(json).to.have.property('accountNumber');",
+                "  pm.expect(json).to.have.property('type');",
+                "  pm.expect(json).to.have.property('initialBalance');",
+                "  pm.expect(json).to.have.property('currentBalance');",
+                "  pm.expect(json).to.have.property('status');",
+                "  pm.expect(json).to.have.property('customerId');",
+                "});",
+                "pm.test('Seeded account matches BaseDatos.sql (225487 CHECKING initialBalance=100)', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json.accountNumber).to.eql('225487');",
+                "  pm.expect(json.type).to.eql('CHECKING');",
+                "  pm.expect(Number(json.initialBalance)).to.eql(100);",
+                "  pm.expect(json.customerId).to.eql(pm.collectionVariables.get('existingCustomerIdMarianela'));",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Create account (for Jose) - 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"PM-ACC-{{ts}}\",\n  \"type\": \"SAVINGS\",\n  \"initialBalance\": 200,\n  \"status\": true,\n  \"customerId\": \"{{existingCustomerIdJose}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                "pm.test('Location header exists', function () { pm.expect(pm.response.headers.get('Location')).to.be.ok; });",
+                "pm.test('Response looks like AccountResponse', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('id');",
+                "  pm.expect(json.accountNumber).to.contain('PM-ACC-');",
+                "  pm.expect(json.customerId).to.eql(pm.collectionVariables.get('existingCustomerIdJose'));",
+                "});",
+                "try { const json = pm.response.json(); if (json.id) pm.collectionVariables.set('accountId', json.id); } catch (e) {}"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Update created account (full update) - 200",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"PM-ACC-UPD-{{ts}}\",\n  \"type\": \"CHECKING\",\n  \"initialBalance\": 250,\n  \"status\": true,\n  \"customerId\": \"{{existingCustomerIdJose}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                "pm.test('Updated response returns expected fields', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('id');",
+                "  pm.expect(json.accountNumber).to.contain('PM-ACC-UPD-');",
+                "  pm.expect(json.type).to.eql('CHECKING');",
+                "});"
+              ] }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Movements - OK",
+      "item": [
+        {
+          "name": "List movements (default pagination) - 200",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/movements", "host": ["{{baseUrl}}"], "path": ["movements"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                "pm.test('Response is PagedMovementsResponse-like', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('content');",
+                "  pm.expect(json).to.have.property('page');",
+                "  pm.expect(json).to.have.property('size');",
+                "  pm.expect(json).to.have.property('totalElements');",
+                "  pm.expect(json.content).to.be.an('array');",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "List movements (filter by accountId=Marianela 225487, date range) - 200",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/movements?accountId={{seedAccountIdMarianela_225487}}&startDate={{startDate}}&endDate={{endDate}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["movements"],
+              "query": [
+                { "key": "accountId", "value": "{{seedAccountIdMarianela_225487}}" },
+                { "key": "startDate", "value": "{{startDate}}" },
+                { "key": "endDate", "value": "{{endDate}}" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                "pm.test('All returned movements are for the requested account', function () {",
+                "  const json = pm.response.json();",
+                "  json.content.forEach(m => pm.expect(m.accountId).to.eql(pm.collectionVariables.get('seedAccountIdMarianela_225487')));",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Get seeded movement (Marianela CREDIT 600) - 200",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/movements/{{seedMovementIdMarianelaCredit600}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["movements", "{{seedMovementIdMarianelaCredit600}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                "pm.test('Seeded movement matches BaseDatos.sql (CREDIT 600, date 2022-02-10)', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json.type).to.eql('CREDIT');",
+                "  pm.expect(Number(json.value)).to.eql(600);",
+                "  pm.expect(json.date).to.eql('2022-02-10');",
+                "  pm.expect(json.accountId).to.eql(pm.collectionVariables.get('seedAccountIdMarianela_225487'));",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Create movement (CREDIT 10) on created account - 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{accountId}}\",\n  \"date\": \"2022-02-11\",\n  \"type\": \"CREDIT\",\n  \"value\": 10\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/movements", "host": ["{{baseUrl}}"], "path": ["movements"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                "pm.test('Location header exists', function () { pm.expect(pm.response.headers.get('Location')).to.be.ok; });",
+                "pm.test('Response looks like MovementResponse', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('id');",
+                "  pm.expect(json.accountId).to.eql(pm.collectionVariables.get('accountId'));",
+                "  pm.expect(json.type).to.eql('CREDIT');",
+                "  pm.expect(Number(json.value)).to.eql(10);",
+                "  pm.expect(json).to.have.property('balanceAfter');",
+                "});",
+                "try { const json = pm.response.json(); if (json.id) pm.collectionVariables.set('movementId', json.id); } catch (e) {}"
+              ] }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Reports - OK",
+      "item": [
+        {
+          "name": "Report for Marianela (2022-02-01..2022-02-28) - 200",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/reports/{{existingCustomerIdMarianela}}?startDate={{startDate}}&endDate={{endDate}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "{{existingCustomerIdMarianela}}"],
+              "query": [
+                { "key": "startDate", "value": "{{startDate}}" },
+                { "key": "endDate", "value": "{{endDate}}" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                "pm.test('AccountStatementReport shape', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('clientId');",
+                "  pm.expect(json.clientId).to.eql(pm.collectionVariables.get('existingCustomerIdMarianela'));",
+                "  pm.expect(json).to.have.property('startDate');",
+                "  pm.expect(json).to.have.property('endDate');",
+                "  pm.expect(json).to.have.property('accounts');",
+                "  pm.expect(json.accounts).to.be.an('array');",
+                "});"
+              ] }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Accounts - Error cases",
+      "item": [
+        {
+          "name": "Create account (customer not found) - 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"PM-ACC-NF-{{ts}}\",\n  \"type\": \"SAVINGS\",\n  \"initialBalance\": 100,\n  \"status\": true,\n  \"customerId\": \"{{nonExistingCustomerId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 404', function () { pm.response.to.have.status(404); });",
+                "pm.test('ApiError shape', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('timestamp');",
+                "  pm.expect(json).to.have.property('status', 404);",
+                "  pm.expect(json).to.have.property('error');",
+                "  pm.expect(json).to.have.property('message');",
+                "  pm.expect(json).to.have.property('path');",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Get account by id (not found) - 404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{nonExistingAccountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{nonExistingAccountId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 404', function () { pm.response.to.have.status(404); });"
+              ] }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Movements - Error cases",
+      "item": [
+        {
+          "name": "Create movement (validation: value <= 0) - 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"accountId\": \"{{seedAccountIdJose_478758}}\",\n  \"date\": \"2022-02-10\",\n  \"type\": \"CREDIT\",\n  \"value\": 0\n}" },
+            "url": { "raw": "{{baseUrl}}/movements", "host": ["{{baseUrl}}"], "path": ["movements"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });",
+                "pm.test('ApiError shape', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('status', 400);",
+                "  pm.expect(json).to.have.property('message');",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Create movement (account not found) - 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"accountId\": \"{{nonExistingAccountId}}\",\n  \"date\": \"2022-02-10\",\n  \"type\": \"CREDIT\",\n  \"value\": 10\n}" },
+            "url": { "raw": "{{baseUrl}}/movements", "host": ["{{baseUrl}}"], "path": ["movements"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 404', function () { pm.response.to.have.status(404); });"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Create movement (insufficient funds using seeded 0-balance account) - 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{seedAccountIdMarianela_496825}}\",\n  \"date\": \"2022-02-12\",\n  \"type\": \"DEBIT\",\n  \"value\": 1\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/movements", "host": ["{{baseUrl}}"], "path": ["movements"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 409', function () { pm.response.to.have.status(409); });",
+                "pm.test('Message is Saldo no disponible', function () {",
+                "  const json = pm.response.json();",
+                "  pm.expect(json).to.have.property('message');",
+                "  pm.expect(json.message).to.eql('Saldo no disponible');",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Get movement by id (not found) - 404",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/movements/{{nonExistingMovementId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["movements", "{{nonExistingMovementId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 404', function () { pm.response.to.have.status(404); });"
+              ] }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Cleanup (only what we created)",
+      "item": [
+        {
+          "name": "Delete created movement - 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/movements/{{movementId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["movements", "{{movementId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 204 (or 404 if already removed)', function () {",
+                "  pm.expect([204,404]).to.include(pm.response.code);",
+                "});"
+              ] }
+            }
+          ]
+        },
+        {
+          "name": "Delete created account - 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [
+                "pm.test('Status code is 204 (or 404 if already removed)', function () {",
+                "  pm.expect([204,404]).to.include(pm.response.code);",
+                "});"
+              ] }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,612 @@
+openapi: 3.0.3
+info:
+  title: Account & Movement Service API
+  description: |
+    API for managing Accounts, Movements and generating Account Statements (Reports).
+    Contract-First specification for the (Account, Movement) microservice.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081
+    description: Local environment
+
+tags:
+  - name: Accounts
+    description: Account CRUD operations
+  - name: Movements
+    description: Movement CRUD operations
+  - name: Reports
+    description: Account statement reports
+
+paths:
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: List accounts
+      operationId: listAccounts
+      parameters:
+        - in: query
+          name: customerId
+          description: Filter by customer id (optional)
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: page
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+        - in: query
+          name: size
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Accounts retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedAccountsResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags: [Accounts]
+      summary: Create an account
+      description: Creates an account for an existing customer.
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountRequest"
+      responses:
+        "201":
+          description: Account created
+          headers:
+            Location:
+              description: URI of the created account
+              schema:
+                type: string
+                example: /accounts/3fa85f64-5717-4562-b3fc-2c963f66afa6
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                customerNotFound:
+                  value:
+                    timestamp: "2026-03-19T12:34:56Z"
+                    status: 404
+                    error: "Not Found"
+                    message: "Customer not found"
+                    path: "/accounts"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      summary: Get account by id
+      operationId: getAccountById
+      parameters:
+        - $ref: "#/components/parameters/AccountId"
+      responses:
+        "200":
+          description: Account found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags: [Accounts]
+      summary: Update account (full update)
+      operationId: updateAccount
+      parameters:
+        - $ref: "#/components/parameters/AccountId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccountRequest"
+      responses:
+        "200":
+          description: Account updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags: [Accounts]
+      summary: Delete account
+      operationId: deleteAccount
+      parameters:
+        - $ref: "#/components/parameters/AccountId"
+      responses:
+        "204":
+          description: Account deleted (no content)
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /movements:
+    get:
+      tags: [Movements]
+      summary: List movements
+      operationId: listMovements
+      parameters:
+        - in: query
+          name: accountId
+          required: false
+          schema: { type: string, format: uuid }
+        - in: query
+          name: startDate
+          required: false
+          schema: { type: string, format: date }
+        - in: query
+          name: endDate
+          required: false
+          schema: { type: string, format: date }
+        - in: query
+          name: page
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+        - in: query
+          name: size
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Movements retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedMovementsResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags: [Movements]
+      summary: Register a movement
+      description: |
+        Registers a movement and updates account available balance.
+        Business rules:
+        - value must be > 0
+        - DEBIT subtracts, CREDIT adds
+        - if DEBIT exceeds available balance, return "Saldo no disponible"
+      operationId: createMovement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMovementRequest"
+      responses:
+        "201":
+          description: Movement created
+          headers:
+            Location:
+              description: URI of the created movement
+              schema:
+                type: string
+                example: /movements/3fa85f64-5717-4562-b3fc-2c963f66afa6
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovementResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Account not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApiError" }
+              examples:
+                accountNotFound:
+                  value:
+                    timestamp: "2026-03-19T12:34:56Z"
+                    status: 404
+                    error: "Not Found"
+                    message: "Account not found"
+                    path: "/movements"
+        "409":
+          description: Insufficient funds
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApiError" }
+              examples:
+                insufficientFunds:
+                  value:
+                    timestamp: "2026-03-19T12:34:56Z"
+                    status: 409
+                    error: "Conflict"
+                    message: "Saldo no disponible"
+                    path: "/movements"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /movements/{movementId}:
+    get:
+      tags: [Movements]
+      summary: Get movement by id
+      operationId: getMovementById
+      parameters:
+        - $ref: "#/components/parameters/MovementId"
+      responses:
+        "200":
+          description: Movement found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovementResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags: [Movements]
+      summary: Update movement (full update)
+      description: |
+        Included to satisfy CRUD requirement. In real banking systems, updating movements is usually not allowed.
+      operationId: updateMovement
+      parameters:
+        - $ref: "#/components/parameters/MovementId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMovementRequest"
+      responses:
+        "200":
+          description: Movement updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovementResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags: [Movements]
+      summary: Delete movement
+      description: |
+        Included to satisfy CRUD requirement. In real banking systems, deleting movements is usually not allowed.
+      operationId: deleteMovement
+      parameters:
+        - $ref: "#/components/parameters/MovementId"
+      responses:
+        "204":
+          description: Movement deleted (no content)
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /reports/{clientId}:
+    get:
+      tags: [Reports]
+      summary: Account statement report by customer and date range
+      operationId: getAccountStatementReport
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+        - in: query
+          name: startDate
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: endDate
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Account statement report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountStatementReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+components:
+  parameters:
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+    MovementId:
+      name: movementId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+    ClientId:
+      name: clientId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+
+    Conflict:
+      description: Conflict with current state
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+
+    ServiceUnavailable:
+      description: Downstream service unavailable
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          examples:
+            downstreamUnavailable:
+              value:
+                timestamp: "2026-03-19T12:34:56Z"
+                status: 503
+                error: "Service Unavailable"
+                message: "customer-service unavailable"
+                path: "/accounts"
+
+    InternalServerError:
+      description: Unexpected error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+
+  schemas:
+    AccountType:
+      type: string
+      enum: [SAVINGS, CHECKING]
+      description: Account type
+
+    MovementType:
+      type: string
+      enum: [DEBIT, CREDIT]
+      description: Movement type
+
+    Money:
+      type: number
+      format: double
+      description: Monetary amount
+
+    AccountBase:
+      type: object
+      required: [accountNumber, type, initialBalance, status, customerId]
+      properties:
+        accountNumber:
+          type: string
+          minLength: 3
+          maxLength: 20
+          example: "478758"
+        type:
+          $ref: "#/components/schemas/AccountType"
+        initialBalance:
+          $ref: "#/components/schemas/Money"
+        status:
+          type: boolean
+          example: true
+        customerId:
+          type: string
+          format: uuid
+          example: "11111111-1111-1111-1111-111111111111"
+
+    AccountResponse:
+      type: object
+      required: [id, accountNumber, type, initialBalance, currentBalance, status, customerId]
+      properties:
+        id:
+          type: string
+          format: uuid
+        accountNumber:
+          type: string
+        type:
+          $ref: "#/components/schemas/AccountType"
+        initialBalance:
+          $ref: "#/components/schemas/Money"
+        currentBalance:
+          $ref: "#/components/schemas/Money"
+        status:
+          type: boolean
+        customerId:
+          type: string
+          format: uuid
+
+    CreateAccountRequest:
+      allOf:
+        - $ref: "#/components/schemas/AccountBase"
+
+    UpdateAccountRequest:
+      allOf:
+        - $ref: "#/components/schemas/AccountBase"
+
+    PagedAccountsResponse:
+      type: object
+      required: [content, page, size, totalElements]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/AccountResponse" }
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        totalElements:
+          type: integer
+          minimum: 0
+
+    MovementBase:
+      type: object
+      required: [accountId, date, type, value]
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        type:
+          $ref: "#/components/schemas/MovementType"
+        value:
+          $ref: "#/components/schemas/Money"
+
+    MovementResponse:
+      type: object
+      required: [id, accountId, date, type, value, balanceAfter]
+      properties:
+        id:
+          type: string
+          format: uuid
+        accountId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        type:
+          $ref: "#/components/schemas/MovementType"
+        value:
+          $ref: "#/components/schemas/Money"
+        balanceAfter:
+          $ref: "#/components/schemas/Money"
+
+    CreateMovementRequest:
+      allOf:
+        - $ref: "#/components/schemas/MovementBase"
+
+    UpdateMovementRequest:
+      allOf:
+        - $ref: "#/components/schemas/MovementBase"
+
+    PagedMovementsResponse:
+      type: object
+      required: [content, page, size, totalElements]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/MovementResponse" }
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        totalElements:
+          type: integer
+          minimum: 0
+
+    AccountStatementReport:
+      type: object
+      required: [clientId, startDate, endDate, accounts]
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountStatementAccount"
+
+    AccountStatementAccount:
+      type: object
+      required: [accountId, accountNumber, type, initialBalance, currentBalance, movements]
+      properties:
+        accountId:
+          type: string
+          format: uuid
+        accountNumber:
+          type: string
+        type:
+          $ref: "#/components/schemas/AccountType"
+        initialBalance:
+          $ref: "#/components/schemas/Money"
+        currentBalance:
+          $ref: "#/components/schemas/Money"
+        movements:
+          type: array
+          items:
+            $ref: "#/components/schemas/MovementResponse"
+
+    ApiError:
+      type: object
+      required: [timestamp, status, error, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              issue: { type: string }

@@ -1,0 +1,477 @@
+{
+  "info": {
+    "name": "Customer Service API - Contract Tests",
+    "_postman_id": "a3c3e2e7-6bda-4f2f-9b16-0d7e6f16d2b7",
+    "description": "Collection generated from openapi.yaml and BaseDatos.sql. Includes OK and error cases for Customer endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "customerId", "value": "11111111-1111-1111-1111-111111111111" },
+    { "key": "existingCustomerId", "value": "11111111-1111-1111-1111-111111111111" },
+    { "key": "nonExistingCustomerId", "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" },
+    { "key": "duplicatedIdentification", "value": "0102030405" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.variables.set('ts', new Date().toISOString());"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Customers - OK",
+      "item": [
+        {
+          "name": "List customers (default pagination) - 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is PagedCustomersResponse-like', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('content');",
+                  "  pm.expect(json).to.have.property('page');",
+                  "  pm.expect(json).to.have.property('size');",
+                  "  pm.expect(json).to.have.property('totalElements');",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "});",
+                  "",
+                  "// If there is at least one customer, store first id",
+                  "try {",
+                  "  const json = pm.response.json();",
+                  "  if (json.content && json.content.length > 0 && json.content[0].id) {",
+                  "    pm.collectionVariables.set('customerId', json.content[0].id);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List customers (page=0,size=2) - 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers?page=0&size=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "2" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('size is 2 (or less if fewer exist)', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.size).to.eql(2);",
+                  "  pm.expect(json.content.length).to.be.at.most(2);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get customer by id (seeded Jose Lema) - 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{existingCustomerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{existingCustomerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('CustomerResponse does not expose password', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('id');",
+                  "  pm.expect(json).to.have.property('name');",
+                  "  pm.expect(json).to.have.property('gender');",
+                  "  pm.expect(json).to.have.property('identification');",
+                  "  pm.expect(json).to.have.property('address');",
+                  "  pm.expect(json).to.have.property('phone');",
+                  "  pm.expect(json).to.have.property('status');",
+                  "  pm.expect(json).to.not.have.property('password');",
+                  "  pm.expect(json).to.not.have.property('password_hash');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create customer - 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Postman\",\n  \"gender\": \"OTHER\",\n  \"identification\": \"PM-{{ts}}\",\n  \"address\": \"Calle Postman 123\",\n  \"phone\": \"0999999999\",\n  \"password\": \"1234\",\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Location header exists', function () {",
+                  "  pm.expect(pm.response.headers.get('Location')).to.be.ok;",
+                  "});",
+                  "pm.test('Response looks like CustomerResponse', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('id');",
+                  "  pm.expect(json).to.have.property('status');",
+                  "  pm.expect(json).to.not.have.property('password');",
+                  "});",
+                  "",
+                  "// Save newly created id to reuse in update/delete",
+                  "try {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) {",
+                  "    pm.collectionVariables.set('customerId', json.id);",
+                  "  }",
+                  "} catch (e) {}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update customer (full update) - 200",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Postman Actualizado\",\n  \"gender\": \"FEMALE\",\n  \"identification\": \"PM-UPDATED-{{ts}}\",\n  \"address\": \"Av. Actualizada 456\",\n  \"phone\": \"0888888888\",\n  \"password\": \"5678\",\n  \"status\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{customerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Updated response returns status and no password', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('id');",
+                  "  pm.expect(json).to.have.property('status');",
+                  "  pm.expect(json.status).to.eql(false);",
+                  "  pm.expect(json).to.not.have.property('password');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete customer - 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{customerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});",
+                  "pm.test('No content body', function () {",
+                  "  pm.expect(pm.response.text()).to.be.oneOf(['', null]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers - Error cases",
+      "item": [
+        {
+          "name": "Get customer by id (not found) - 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{nonExistingCustomerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{nonExistingCustomerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('ApiError shape', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('timestamp');",
+                  "  pm.expect(json).to.have.property('status', 404);",
+                  "  pm.expect(json).to.have.property('error');",
+                  "  pm.expect(json).to.have.property('message');",
+                  "  pm.expect(json).to.have.property('path');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create customer (validation error: missing required fields) - 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('ApiError shape', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('status', 400);",
+                  "  pm.expect(json).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create customer (validation error: invalid gender) - 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Genero Invalido\",\n  \"gender\": \"NOT_VALID\",\n  \"identification\": \"INV-GEN-{{ts}}\",\n  \"address\": \"Calle 1\",\n  \"phone\": \"0999999999\",\n  \"password\": \"1234\",\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('ApiError shape', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('status', 400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create customer (conflict: duplicated identification) - 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Duplicado\",\n  \"gender\": \"MALE\",\n  \"identification\": \"{{duplicatedIdentification}}\",\n  \"address\": \"Calle Duplicada\",\n  \"phone\": \"0911111111\",\n  \"password\": \"1234\",\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 409', function () {",
+                  "  pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('ApiError shape', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('status', 409);",
+                  "  pm.expect(json).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update customer (not found) - 404",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"No Existe\",\n  \"gender\": \"MALE\",\n  \"identification\": \"NO-EXISTE-{{ts}}\",\n  \"address\": \"Calle X\",\n  \"phone\": \"0900000000\",\n  \"password\": \"1234\",\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{nonExistingCustomerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{nonExistingCustomerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete customer (not found) - 404",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{nonExistingCustomerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customers", "{{nonExistingCustomerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

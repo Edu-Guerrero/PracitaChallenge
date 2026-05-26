@@ -1,0 +1,364 @@
+openapi: 3.0.3
+info:
+  title: Customer Service API
+  description: |
+    API for managing Customers. A Customer extends Person data (composition via allOf).
+    Contract-First specification for the (Customer, Person) microservice.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local environment
+
+tags:
+  - name: Customers
+    description: Customer CRUD operations
+
+paths:
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: List customers
+      description: Returns a paginated list of customers.
+      operationId: listCustomers
+      parameters:
+        - in: query
+          name: page
+          description: Zero-based page index
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: size
+          description: Page size
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Customers retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedCustomersResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - Customers
+      summary: Create a customer
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerRequest"
+            examples:
+              example1:
+                summary: Sample customer
+                value:
+                  name: "Jose Lema"
+                  gender: "MALE"
+                  identification: "0102030405"
+                  address: "Otavalo sn y principal"
+                  phone: "098254785"
+                  password: "1234"
+                  status: true
+      responses:
+        "201":
+          description: Customer created
+          headers:
+            Location:
+              description: URI of the created customer
+              schema:
+                type: string
+                example: /customers/3fa85f64-5717-4562-b3fc-2c963f66afa6
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /customers/{customerId}:
+    get:
+      tags:
+        - Customers
+      summary: Get customer by id
+      operationId: getCustomerById
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      responses:
+        "200":
+          description: Customer found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags:
+        - Customers
+      summary: Update customer (full update)
+      operationId: updateCustomer
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerRequest"
+      responses:
+        "200":
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Customers
+      summary: Delete customer
+      operationId: deleteCustomer
+      parameters:
+        - $ref: "#/components/parameters/CustomerId"
+      responses:
+        "204":
+          description: Customer deleted (no content)
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      description: Customer identifier
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            validationError:
+              value:
+                timestamp: "2026-03-19T12:34:56Z"
+                status: 400
+                error: "Bad Request"
+                message: "Validation failed"
+                path: "/customers"
+                details:
+                  - field: "identification"
+                    issue: "must not be blank"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            notFound:
+              value:
+                timestamp: "2026-03-19T12:34:56Z"
+                status: 404
+                error: "Not Found"
+                message: "Customer not found"
+                path: "/customers/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+
+    Conflict:
+      description: Conflict with current state (e.g., duplicated identification)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            duplicated:
+              value:
+                timestamp: "2026-03-19T12:34:56Z"
+                status: 409
+                error: "Conflict"
+                message: "Customer with same identification already exists"
+                path: "/customers"
+
+    InternalServerError:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+
+  schemas:
+    Gender:
+      type: string
+      description: Person gender
+      enum: [MALE, FEMALE, OTHER]
+
+    PersonBase:
+      type: object
+      description: Base person data
+      required: [name, gender, identification, address, phone]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+          example: "Jose Lema"
+        gender:
+          $ref: "#/components/schemas/Gender"
+        identification:
+          type: string
+          minLength: 5
+          maxLength: 30
+          example: "0102030405"
+        address:
+          type: string
+          minLength: 3
+          maxLength: 200
+          example: "Otavalo sn y principal"
+        phone:
+          type: string
+          minLength: 7
+          maxLength: 20
+          example: "098254785"
+
+    CustomerFields:
+      type: object
+      description: Customer-specific fields
+      required: [password, status]
+      properties:
+        password:
+          type: string
+          minLength: 4
+          maxLength: 100
+          description: |
+            Customer password. In a real system it should never be returned in responses
+            and should be stored hashed.
+          example: "1234"
+        status:
+          type: boolean
+          description: Customer status (active/inactive)
+          example: true
+
+    Customer:
+      description: Customer entity (Person + Customer-specific fields)
+      allOf:
+        - $ref: "#/components/schemas/PersonBase"
+        - $ref: "#/components/schemas/CustomerFields"
+
+    CustomerResponse:
+      type: object
+      description: Customer response model (password is not exposed)
+      required: [id, name, gender, identification, address, phone, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        name:
+          type: string
+        gender:
+          $ref: "#/components/schemas/Gender"
+        identification:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        status:
+          type: boolean
+
+    CreateCustomerRequest:
+      description: Payload to create a customer
+      allOf:
+        - $ref: "#/components/schemas/Customer"
+
+    UpdateCustomerRequest:
+      description: Payload to update a customer (full update)
+      allOf:
+        - $ref: "#/components/schemas/Customer"
+
+    PagedCustomersResponse:
+      type: object
+      required: [content, page, size, totalElements]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomerResponse"
+        page:
+          type: integer
+          minimum: 0
+          example: 0
+        size:
+          type: integer
+          minimum: 1
+          example: 20
+        totalElements:
+          type: integer
+          minimum: 0
+          example: 1
+
+    ApiError:
+      type: object
+      required: [timestamp, status, error, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Validation failed"
+        path:
+          type: string
+          example: "/customers"
+        details:
+          type: array
+          description: Optional validation/business details
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              issue:
+                type: string
