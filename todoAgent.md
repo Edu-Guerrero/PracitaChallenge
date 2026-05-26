@@ -1,5 +1,5 @@
 ---
-name: java-todo-solver
+name: java-to-do-solver
 description: >
   Agente autónomo de ejecución de tareas definidas en un archivo todo.md para
   proyectos de software. Lee y analiza el contenido del todo, clasifica cada
