@@ -41,11 +41,26 @@ paths:
             default: 20
       responses:
         "200":
-          description: Customers retrieved
+          description: Paginated customer list
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PagedCustomersResponse"
+              examples:
+                onePage:
+                  summary: Single-page example
+                  value:
+                    content:
+                      - id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                        name: "Jose Lema"
+                        gender: "MALE"
+                        identification: "0102030405"
+                        address: "Otavalo sn y principal"
+                        phone: "098254785"
+                        status: true
+                    page: 0
+                    size: 1
+                    totalElements: 1
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -53,6 +68,9 @@ paths:
       tags:
         - Customers
       summary: Create a customer
+      description: |
+        Creates a new customer. The password is mandatory, and will be stored as a hash.
+        Password must never be returned in responses.
       operationId: createCustomer
       requestBody:
         required: true
@@ -62,14 +80,14 @@ paths:
               $ref: "#/components/schemas/CreateCustomerRequest"
             examples:
               example1:
-                summary: Sample customer
+                summary: Sample customer creation
                 value:
-                  name: "Jose Lema"
+                  name: "Juan Osorio"
                   gender: "MALE"
-                  identification: "0102030405"
-                  address: "Otavalo sn y principal"
-                  phone: "098254785"
-                  password: "1234"
+                  identification: "098874587"
+                  address: "13 junio y Equinoccial"
+                  phone: "098874587"
+                  password: "securePa$$word123"
                   status: true
       responses:
         "201":
@@ -84,6 +102,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomerResponse"
+              examples:
+                success:
+                  value:
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    name: "Juan Osorio"
+                    gender: "MALE"
+                    identification: "098874587"
+                    address: "13 junio y Equinoccial"
+                    phone: "098874587"
+                    status: true
         "400":
           $ref: "#/components/responses/BadRequest"
         "409":
@@ -106,6 +134,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomerResponse"
+              examples:
+                found:
+                  value:
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    name: "Jose Lema"
+                    gender: "MALE"
+                    identification: "0102030405"
+                    address: "Otavalo sn y principal"
+                    phone: "098254785"
+                    status: true
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
@@ -124,6 +162,17 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateCustomerRequest"
+            examples:
+              update1:
+                summary: Change address for a customer
+                value:
+                  name: "Jose Lema"
+                  gender: "MALE"
+                  identification: "0102030405"
+                  address: "Nueva direccion 123"
+                  phone: "098254785"
+                  password: "nuevoPasswordSeguro"
+                  status: true
       responses:
         "200":
           description: Customer updated
@@ -131,6 +180,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CustomerResponse"
+              examples:
+                updated:
+                  value:
+                    id: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    name: "Jose Lema"
+                    gender: "MALE"
+                    identification: "0102030405"
+                    address: "Nueva direccion 123"
+                    phone: "098254785"
+                    status: true
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
@@ -161,10 +220,11 @@ components:
       name: customerId
       in: path
       required: true
-      description: Customer identifier
+      description: Customer identifier (UUID)
       schema:
         type: string
         format: uuid
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
 
   responses:
     BadRequest:
@@ -221,6 +281,14 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ApiError"
+          examples:
+            serverError:
+              value:
+                timestamp: "2026-03-19T12:34:56Z"
+                status: 500
+                error: "Internal Server Error"
+                message: "Unexpected error occurred"
+                path: "/customers"
 
   schemas:
     Gender:
@@ -282,7 +350,7 @@ components:
 
     CustomerResponse:
       type: object
-      description: Customer response model (password is not exposed)
+      description: Customer response (password never included)
       required: [id, name, gender, identification, address, phone, status]
       properties:
         id:
