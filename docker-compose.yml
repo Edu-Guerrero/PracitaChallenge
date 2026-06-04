@@ -10,7 +10,6 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Opcional: ejecutar BaseDatos.sql al iniciar (si está en la misma carpeta)
       - ./BaseDatos.sql:/docker-entrypoint-initdb.d/BaseDatos.sql:ro
 
 volumes:

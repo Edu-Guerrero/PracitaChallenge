@@ -10,9 +10,7 @@ plugins {
 }
 
 def packageName = 'com.challenge.customer_service'
-def dirName = 'com/challenge/customer_service'
 
-group = 'com.challenge'
 version = '0.0.1-SNAPSHOT'
 
 group = "${packageName}"
