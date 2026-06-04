@@ -10,7 +10,6 @@ plugins {
 }
 
 def packageName = 'com.challenge.accounts_movements_service'
-def dirName = 'com/challenge/accounts_movements_service'
 
 group = 'com.challenge'
 version = '0.0.1-SNAPSHOT'
