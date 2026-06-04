@@ -24,21 +24,20 @@ public interface MovementRestMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "accountId", source = "accountId")
     @Mapping(target = "date", source = "date")
-    @Mapping(target = "type", source = "type") // uses map(api MovementType)
+    @Mapping(target = "type", source = "type")
     @Mapping(target = "value", source = "value")
-    // balanceAfter is calculated by MovementService (business rule)
     @Mapping(target = "balanceAfter", ignore = true)
     Movement toDomain(CreateMovementRequest dto);
 
     @Mapping(target = "id", source = "movementId")
     @Mapping(target = "accountId", source = "dto.accountId")
     @Mapping(target = "date", source = "dto.date")
-    @Mapping(target = "type", source = "dto.type") // uses map(...)
+    @Mapping(target = "type", source = "dto.type")
     @Mapping(target = "value", source = "dto.value")
     @Mapping(target = "balanceAfter", ignore = true)
     Movement toDomain(UUID movementId, UpdateMovementRequest dto);
 
-    @Mapping(target = "type", source = "type") // uses map(domain MovementType)
+    @Mapping(target = "type", source = "type")
     MovementResponse toResponse(Movement domain);
 
     @Mapping(target = "content", source = "content")

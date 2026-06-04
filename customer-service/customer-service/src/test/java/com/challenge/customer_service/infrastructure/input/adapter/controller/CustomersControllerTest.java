@@ -212,9 +212,6 @@ class CustomersControllerTest {
         verify(customerRestMapper, never()).toResponse(any());
     }
 
-    /**
-     * Helper para crear un Customer de dominio válido.
-     */
     private Customer validCustomer(UUID id, String identification) {
         Person person = Person.builder()
                 .name("Ana")

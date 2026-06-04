@@ -21,18 +21,11 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // ---------- 400 BAD REQUEST ----------
     @ExceptionHandler(DomainValidationException.class)
     public Mono<ResponseEntity<ApiError>> handleDomainValidation(DomainValidationException ex, ServerWebExchange exchange) {
         return Mono.just(build(exchange, HttpStatus.BAD_REQUEST, ex.getMessage(), null, ex));
     }
 
-    /**
-     * Covers typical WebFlux input problems:
-     * - Missing required query param (startDate/endDate in /reports)
-     * - Invalid UUID/date format
-     * - Invalid JSON body
-     */
     @ExceptionHandler({
             ServerWebInputException.class,
             DecodingException.class,
@@ -62,13 +55,11 @@ public class GlobalExceptionHandler {
             message = "Malformed JSON request body: " + ex.getMessage();
         }
 
-        // Temporal: log entero para debug
         log.info("Validation failure details: {}", ex.getMessage(), ex);
 
         return Mono.just(build(exchange, HttpStatus.BAD_REQUEST, message, details, ex));
     }
 
-    // ---------- 404 NOT FOUND ----------
     @ExceptionHandler({
             AccountNotFoundException.class,
             MovementNotFoundException.class,
@@ -78,33 +69,28 @@ public class GlobalExceptionHandler {
         return Mono.just(build(exchange, HttpStatus.NOT_FOUND, ex.getMessage(), null, ex));
     }
 
-    // ---------- 409 CONFLICT ----------
     @ExceptionHandler({
             DuplicatedAccountNumberException.class,
             InsufficientFundsException.class,
             AccountInactiveException.class
     })
     public Mono<ResponseEntity<ApiError>> handleConflict(DomainException ex, ServerWebExchange exchange) {
-        // For F3: InsufficientFundsException message should be exactly "Saldo no disponible"
         return Mono.just(build(exchange, HttpStatus.CONFLICT, ex.getMessage(), null, ex));
     }
 
-    // ---------- 503 SERVICE UNAVAILABLE ----------
     @ExceptionHandler(DownstreamServiceException.class)
     public Mono<ResponseEntity<ApiError>> handleDownstream(DownstreamServiceException ex, ServerWebExchange exchange) {
         return Mono.just(build(exchange, HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), null, ex));
     }
 
-    // ---------- 500 INTERNAL SERVER ERROR (fallback) ----------
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<ApiError>> handleUnexpected(Exception ex, ServerWebExchange exchange) {
-        // Log stacktrace for diagnostics, but do not expose it to clients
+
         log.error("Unhandled error at {} {}", exchange.getRequest().getMethod(), exchange.getRequest().getURI(), ex);
 
         return Mono.just(build(exchange, HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", null, ex));
     }
 
-    // ---------- builder ----------
     private ResponseEntity<ApiError> build(ServerWebExchange exchange,
                                            HttpStatus status,
                                            String message,
@@ -122,7 +108,6 @@ public class GlobalExceptionHandler {
             apiError.setDetails(details);
         }
 
-        // Log with a level depending on status
         exchange.getRequest().getMethod();
         String method = exchange.getRequest().getMethod().name();
         String path = exchange.getRequest().getPath().value();

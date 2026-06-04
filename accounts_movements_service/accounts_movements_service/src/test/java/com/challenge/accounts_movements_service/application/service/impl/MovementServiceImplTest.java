@@ -38,7 +38,6 @@ class MovementServiceImplTest {
         movementService = new MovementServiceImpl(accountRepositoryPort, movementRepositoryPort, movementPolicy);
     }
 
-    // ------------ CREATE ------------
 
     @Test
     void create_shouldThrowWhenMovementIsNull() {
@@ -106,7 +105,6 @@ class MovementServiceImplTest {
         verify(accountRepositoryPort).save(any());
     }
 
-    // ------------ UPDATE ------------
 
     @Test
     void update_shouldThrowIfMovementIdIsNull() {
@@ -177,7 +175,7 @@ class MovementServiceImplTest {
         UUID id = UUID.randomUUID();
         Movement existing = validMovement();
         Movement incoming = validMovement();
-        incoming.setAccountId(existing.getAccountId()); // no cambia
+        incoming.setAccountId(existing.getAccountId());
         when(movementRepositoryPort.findById(id)).thenReturn(Mono.just(existing));
         when(movementRepositoryPort.save(any())).thenReturn(Mono.just(incoming));
 
@@ -187,7 +185,6 @@ class MovementServiceImplTest {
         verify(movementRepositoryPort).save(any());
     }
 
-    // ------------ DELETE ------------
 
     @Test
     void delete_shouldThrowWhenMovementIdIsNull() {
@@ -212,7 +209,6 @@ class MovementServiceImplTest {
         verify(movementRepositoryPort).deleteById(id);
     }
 
-    // ------------ GET BY ID ------------
 
     @Test
     void getById_shouldThrowWhenMovementIdIsNull() {
@@ -236,7 +232,6 @@ class MovementServiceImplTest {
                 .verifyComplete();
     }
 
-    // ------------ LIST ------------
 
     @Test
     void list_shouldThrowWhenPageOrSizeInvalid() {
@@ -257,7 +252,6 @@ class MovementServiceImplTest {
         verify(movementRepositoryPort).findAll(aid, null, null, 0, 1);
     }
 
-    // ------------ HELPERS ------------
 
     private Movement validMovement() {
         Movement m = new Movement();

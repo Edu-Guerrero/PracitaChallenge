@@ -120,25 +120,21 @@ public class AccountServiceImpl implements AccountInputPort {
     }
 
     private Mono<Account> validateForUpdate(UUID accountId, Account existing, Account incoming) {
-        // Keep ID consistent
+
         incoming.setId(accountId);
 
-        // Optionally forbid customerId changes; business decision
         if (incoming.getCustomerId() == null) {
             incoming.setCustomerId(existing.getCustomerId());
         }
 
-        // Preserve the current balance ALWAYS
         incoming.setCurrentBalance(existing.getCurrentBalance());
 
-        // Validate basic fields
         if (incoming.getAccountNumber() == null || incoming.getAccountNumber().trim().isEmpty())
             return Mono.error(new DomainValidationException("accountNumber is required"));
         if (incoming.getType() == null) return Mono.error(new DomainValidationException("type is required"));
         if (incoming.getInitialBalance() == null || incoming.getInitialBalance().compareTo(BigDecimal.ZERO) < 0)
             return Mono.error(new DomainValidationException("initialBalance must be >= 0"));
 
-        // If accountNumber changed, verify uniqueness
         boolean accountNumberChanged = !existing.getAccountNumber().equals(incoming.getAccountNumber());
         if (!accountNumberChanged) {
             return Mono.just(incoming);

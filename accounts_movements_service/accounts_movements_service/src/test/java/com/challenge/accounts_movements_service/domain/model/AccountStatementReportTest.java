@@ -26,7 +26,7 @@ class AccountStatementReportTest {
                 .clientId(clientId)
                 .startDate(begin)
                 .endDate(end)
-                .account(acc1) // using @Singular
+                .account(acc1)
                 .build();
 
         assertEquals(clientId, report.getClientId());

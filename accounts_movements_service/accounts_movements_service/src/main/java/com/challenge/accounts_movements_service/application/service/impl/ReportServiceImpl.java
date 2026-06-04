@@ -42,7 +42,6 @@ public class ReportServiceImpl implements ReportInputPort {
             return Mono.error(new DomainValidationException("endDate must be >= startDate"));
         }
 
-        // Recommended: validate the customer exists (REST call to customer-service)
         return customerRepositoryPort.getCustomerById(exchange, clientId)
                 .flatMap(exists -> exists.getId().equals(clientId)
                         ? buildReport(clientId, startDate, endDate)
@@ -52,7 +51,7 @@ public class ReportServiceImpl implements ReportInputPort {
 
     private Mono<AccountStatementReport> buildReport(UUID clientId, LocalDate startDate, LocalDate endDate) {
 
-        return accountRepositoryPort.findAll(clientId, 0, 1000) // Mono<PagedResult<Account>>
+        return accountRepositoryPort.findAll(clientId, 0, 1000)
                 .flatMapMany(paged -> {
                     List<Account> accounts = paged.content();
                     return Flux.fromIterable(accounts);

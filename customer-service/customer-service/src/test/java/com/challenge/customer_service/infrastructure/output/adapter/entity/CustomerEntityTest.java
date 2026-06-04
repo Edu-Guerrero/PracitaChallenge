@@ -57,8 +57,6 @@ class CustomerEntityTest {
         customer.setId(id);
         customer.setPerson(person);
 
-        // Esto no valida JPA (eso requiere test de integración con EntityManager),
-        // pero sí valida la consistencia esperada del objeto en memoria.
         assertEquals(customer.getId(), customer.getPerson().getId());
     }
 }

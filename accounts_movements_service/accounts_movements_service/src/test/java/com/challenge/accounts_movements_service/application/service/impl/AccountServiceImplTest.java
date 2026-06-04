@@ -9,7 +9,6 @@ import com.challenge.accounts_movements_service.domain.model.AccountType;
 import com.challenge.accounts_movements_service.infrastructure.output.adapter.rest.customer_service.bean.CustomerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -36,7 +35,6 @@ class AccountServiceImplTest {
         exchange = mock(ServerWebExchange.class);
     }
 
-    // ---------- CREATE ----------
 
     @Test
     void create_shouldThrowWhenAccountIsNull() {
@@ -62,7 +60,7 @@ class AccountServiceImplTest {
         account.setInitialBalance(BigDecimal.ZERO);
 
         when(customerRepositoryPort.getCustomerById(exchange, customerId))
-                .thenReturn(Mono.just(customerWithID(UUID.randomUUID()))); // IDs no coinciden
+                .thenReturn(Mono.just(customerWithID(UUID.randomUUID())));
 
         StepVerifier.create(accountService.create(account, exchange))
                 .expectError(CustomerNotFoundException.class)
@@ -93,7 +91,6 @@ class AccountServiceImplTest {
         verify(accountRepositoryPort).save(any());
     }
 
-    // ---------- UPDATE ----------
 
     @Test
     void update_shouldThrowWhenAccountIdIsNull() {
@@ -197,7 +194,6 @@ class AccountServiceImplTest {
                 .verifyComplete();
     }
 
-    // ---------- DELETE ----------
 
     @Test
     void delete_shouldThrowWhenAccountIdIsNull() {
@@ -221,7 +217,6 @@ class AccountServiceImplTest {
         verify(accountRepositoryPort).deleteById(id);
     }
 
-    // ---------- GET BY ID ----------
 
     @Test
     void getById_shouldThrowWhenAccountIdIsNull() {
@@ -246,7 +241,6 @@ class AccountServiceImplTest {
                 .verifyComplete();
     }
 
-    // ---------- LIST ----------
 
     @Test
     void list_shouldThrowWhenPageOrSizeInvalid() {
@@ -265,7 +259,6 @@ class AccountServiceImplTest {
                 .verifyComplete();
     }
 
-    // ---------- PRIVATE LOGIC (ensureDefaultsForCreate) ----------
 
     @Test
     void ensureDefaultsForCreate_shouldAssignIdIfNull() {
@@ -276,7 +269,6 @@ class AccountServiceImplTest {
         assertEquals(BigDecimal.valueOf(100), result.getCurrentBalance());
     }
 
-    // ---------- VALIDATE FOR CREATE ----------
 
     @Test
     void validateForCreate_shouldReturnMonoWhenValid() {
@@ -286,9 +278,7 @@ class AccountServiceImplTest {
                 .verifyComplete();
     }
 
-    // ========== HELPERS =============
 
-    /** Devuelve una cuenta completa válida para la mayoría de los tests */
     private Account validAccount() {
         Account a = new Account();
         a.setId(UUID.randomUUID());
@@ -301,14 +291,12 @@ class AccountServiceImplTest {
         return a;
     }
 
-    /** Devuelve un CustomerResponse con id seteado */
     private CustomerResponse customerWithID(UUID id) {
         CustomerResponse c = new CustomerResponse();
         c.setId(id);
         return c;
     }
 
-    /** Accede a ensureDefaultsForCreate para testearlo (el test puede estar en el mismo paquete) */
     private Account invokeEnsureDefaultsForCreate(Account acc) {
         try {
             var m = AccountServiceImpl.class.getDeclaredMethod("ensureDefaultsForCreate", Account.class);
@@ -319,7 +307,6 @@ class AccountServiceImplTest {
         }
     }
 
-    /** Accede a validateForCreate para testearlo directamente */
     private Mono<Account> invokePrivateValidateForCreate(Account acc) {
         try {
             var m = AccountServiceImpl.class.getDeclaredMethod("validateForCreate", Account.class);
@@ -330,7 +317,6 @@ class AccountServiceImplTest {
         }
     }
 
-    /** Accede a validateAccountNumberNotDuplicated para testearlo directamente */
     private Mono<Account> invokePrivateValidateAccountNumberNotDuplicated(Account acc) {
         try {
             var m = AccountServiceImpl.class.getDeclaredMethod("validateAccountNumberNotDuplicated", Account.class);

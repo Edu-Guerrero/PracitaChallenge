@@ -25,12 +25,10 @@ public class TestcontainersInitializer implements ApplicationContextInitializer<
                 "spring.datasource.password=" + POSTGRES.getPassword(),
                 "spring.datasource.driver-class-name=org.postgresql.Driver",
 
-                // Igual que prod: validamos contra el SQL real
                 "spring.jpa.hibernate.ddl-auto=validate",
                 "spring.jpa.open-in-view=false",
                 "spring.jpa.properties.hibernate.default_schema=banking",
 
-                // para que tus endpoints sigan con /api/v1
                 "spring.webflux.base-path=/api/v1"
         ).applyTo(context.getEnvironment());
     }

@@ -23,7 +23,7 @@ public interface CustomerRestMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "person.name", source = "name")
-    @Mapping(target = "person.gender", source = "gender") // uses map(Gender)
+    @Mapping(target = "person.gender", source = "gender")
     @Mapping(target = "person.identification", source = "identification")
     @Mapping(target = "person.address", source = "address")
     @Mapping(target = "person.phone", source = "phone")
@@ -33,7 +33,7 @@ public interface CustomerRestMapper {
 
     @Mapping(target = "id", source = "customerId")
     @Mapping(target = "person.name", source = "dto.name")
-    @Mapping(target = "person.gender", source = "dto.gender") // uses map(Gender)
+    @Mapping(target = "person.gender", source = "dto.gender")
     @Mapping(target = "person.identification", source = "dto.identification")
     @Mapping(target = "person.address", source = "dto.address")
     @Mapping(target = "person.phone", source = "dto.phone")
@@ -42,7 +42,7 @@ public interface CustomerRestMapper {
     Customer toDomain(UUID customerId, UpdateCustomerRequest dto);
 
     @Mapping(target = "name", source = "person.name")
-    @Mapping(target = "gender", source = "person.gender") // uses map(Gender)
+    @Mapping(target = "gender", source = "person.gender")
     @Mapping(target = "identification", source = "person.identification")
     @Mapping(target = "address", source = "person.address")
     @Mapping(target = "phone", source = "person.phone")

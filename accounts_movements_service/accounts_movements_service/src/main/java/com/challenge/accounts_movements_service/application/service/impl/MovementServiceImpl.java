@@ -47,10 +47,8 @@ public class MovementServiceImpl implements MovementInputPort {
                 .flatMap(mv -> movementRepositoryPort.findById(movementId)
                         .switchIfEmpty(Mono.error(new com.challenge.accounts_movements_service.domain.exception.MovementNotFoundException(movementId)))
                         .flatMap(existing -> {
-                            // Mantén consistencia de ID
                             mv.setId(movementId);
 
-                            // Recomendación: no permitir cambiar accountId
                             if (mv.getAccountId() == null) {
                                 mv.setAccountId(existing.getAccountId());
                             } else if (!mv.getAccountId().equals(existing.getAccountId())) {
@@ -96,7 +94,6 @@ public class MovementServiceImpl implements MovementInputPort {
         return movementRepositoryPort.findAll(accountId, startDate, endDate, page, size);
     }
 
-    // ----------------- helpers -----------------
 
     private Mono<Movement> validateForCreate(Movement mv) {
         if (mv.getAccountId() == null) return Mono.error(new DomainValidationException("accountId is required"));

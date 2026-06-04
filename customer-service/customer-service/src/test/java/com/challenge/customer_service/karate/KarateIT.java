@@ -15,7 +15,6 @@ class KarateIT {
 
     @BeforeAll
     static void beforeAll() {
-        // nothing
     }
 
     @Karate.Test

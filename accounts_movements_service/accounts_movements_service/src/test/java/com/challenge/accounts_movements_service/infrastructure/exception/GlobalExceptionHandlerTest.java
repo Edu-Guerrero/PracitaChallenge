@@ -30,7 +30,6 @@ class GlobalExceptionHandlerTest {
         handler = new GlobalExceptionHandler();
         exchange = mock(ServerWebExchange.class);
 
-        // Mock request and path
         ServerHttpRequest request = mock(ServerHttpRequest.class);
         RequestPath requestPath = mock(RequestPath.class);
 
@@ -40,8 +39,6 @@ class GlobalExceptionHandlerTest {
         when(request.getMethod()).thenReturn(HttpMethod.GET);
         when(request.getURI()).thenReturn(URI.create("/api/test"));
     }
-
-    // ---------- 400 BAD REQUEST ----------
 
     @Test
     void handleDomainValidation_shouldReturnBadRequest() {
@@ -77,7 +74,7 @@ class GlobalExceptionHandlerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        // Mensaje generado: "Unsupported content type: application/xml"
+
         assertNotNull(response.getBody());
         assertTrue(response.getBody().getMessage().startsWith("Unsupported content type"));
     }
@@ -94,8 +91,6 @@ class GlobalExceptionHandlerTest {
         assertTrue(response.getBody().getMessage().contains("Malformed JSON"));
     }
 
-    // ---------- 404 NOT FOUND ----------
-
     @Test
     void handleNotFound_shouldReturnNotFound() {
         String msg = "Resource not found";
@@ -106,8 +101,6 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
         assertApiError(resp.getBody(), HttpStatus.NOT_FOUND, msg, "/api/test");
     }
-
-    // ---------- 409 CONFLICT ----------
 
     @Test
     void handleConflict_shouldReturnConflict() {
@@ -120,8 +113,6 @@ class GlobalExceptionHandlerTest {
         assertApiError(resp.getBody(), HttpStatus.CONFLICT, "Account number already exists: "+accNumber, "/api/test");
     }
 
-    // ---------- 503 SERVICE UNAVAILABLE ----------
-
     @Test
     void handleDownstream_shouldReturnServiceUnavailable() {
         Mono<ResponseEntity<ApiError>> mono = handler.handleDownstream(
@@ -131,8 +122,6 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, resp.getStatusCode());
         assertApiError(resp.getBody(), HttpStatus.SERVICE_UNAVAILABLE, "Backend offline", "/api/test");
     }
-
-    // ---------- 500 INTERNAL SERVER ERROR (fallback) ----------
 
     @Test
     void handleUnexpected_shouldReturnInternalServerError() {
@@ -144,7 +133,6 @@ class GlobalExceptionHandlerTest {
         assertApiError(resp.getBody(), HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", "/api/test");
     }
 
-    // --- Helper ---
     void assertApiError(ApiError error, HttpStatus status, String message, String path) {
         assertNotNull(error);
         assertEquals(status.value(), error.getStatus());

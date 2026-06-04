@@ -24,7 +24,7 @@ class AccountStatementReportAccountTest {
                 .type(AccountType.CHECKING)
                 .initialBalance(BigDecimal.TEN)
                 .currentBalance(BigDecimal.ONE)
-                .movement(movement) // using @Singular
+                .movement(movement)
                 .build();
 
         assertEquals(accId, acc.getAccountId());

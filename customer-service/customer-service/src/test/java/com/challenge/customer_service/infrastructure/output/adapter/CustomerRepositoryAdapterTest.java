@@ -105,7 +105,6 @@ class CustomerRepositoryAdapterTest {
         domainUpdate.setPasswordHash("newHash");
         domainUpdate.setStatus(false);
 
-        // "Managed" entity loaded from DB
         CustomerEntity existing = validCustomerEntity(id, "ID-OLD");
         existing.getPerson().setName("Old Name");
         existing.setPasswordHash("oldHash");
@@ -127,7 +126,6 @@ class CustomerRepositoryAdapterTest {
         verify(customerJpaRepository).findByIdWithPerson(id);
         verify(customerJpaRepository).save(existing);
 
-        // Verifica que el objeto "existing" fue mutado (applyToExistingEntity)
         assertEquals("ID-NEW", existing.getPerson().getIdentification());
         assertEquals("New Name", existing.getPerson().getName());
         assertEquals("newHash", existing.getPasswordHash());

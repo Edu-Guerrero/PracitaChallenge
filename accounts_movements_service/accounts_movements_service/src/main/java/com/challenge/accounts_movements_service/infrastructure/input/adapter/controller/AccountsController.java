@@ -6,7 +6,7 @@ import com.challenge.accounts_movements_service.infrastructure.input.adapter.res
 import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.PagedAccountsResponse;
 import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.UpdateAccountRequest;
 import com.challenge.accounts_movements_service.infrastructure.input.adapter.mapper.AccountRestMapper;
-import com.challenge.accounts_movements_service.application.input.port.AccountInputPort; // AJUSTA si tu puerto se llama distinto
+import com.challenge.accounts_movements_service.application.input.port.AccountInputPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +22,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountsController implements AccountsApi {
 
-    private final AccountInputPort accountService;     // o AccountUseCase / AccountInputPort
+    private final AccountInputPort accountService;
     private final AccountRestMapper accountApiMapper;
 
     @Override
     public Mono<ResponseEntity<PagedAccountsResponse>> listAccounts(UUID customerId, Integer page, Integer size, ServerWebExchange exchange) {
         log.info("HTTP GET /accounts customerId={} page={} size={}", customerId, page, size);
 
-        return accountService.list(customerId, page, size) // -> Mono<Page<Account>> o similar
+        return accountService.list(customerId, page, size)
                 .map(accountApiMapper::toPagedResponse)
                 .map(ResponseEntity::ok);
     }

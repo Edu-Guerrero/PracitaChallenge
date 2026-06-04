@@ -25,7 +25,7 @@ class CustomerRepositoryAdapterTest {
     void setUp() {
         customersApi = mock(CustomersApi.class);
         adapter = new CustomerRepositoryAdapter(customersApi);
-        exchange = mock(ServerWebExchange.class); // Not used, just to match method sig
+        exchange = mock(ServerWebExchange.class);
     }
 
     @Test

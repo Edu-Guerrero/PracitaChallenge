@@ -80,18 +80,16 @@ class ReportServiceImplTest {
 
     @Test
     void getAccountStatement_shouldMapAccountSectionsAndMovements() {
-        // Arrange
+
         UUID clientId = UUID.randomUUID();
         LocalDate start = LocalDate.of(2024,1,1);
         LocalDate end = LocalDate.of(2024,1,31);
         ServerWebExchange exchange = mock(ServerWebExchange.class);
 
-        // Mock cliente válido
         var cust = new com.challenge.accounts_movements_service.infrastructure.output.adapter.rest.customer_service.bean.CustomerResponse();
         cust.setId(clientId);
         when(customerRepositoryPort.getCustomerById(any(), any())).thenReturn(Mono.just(cust));
 
-        // Mock cuenta(s)
         var accId = UUID.randomUUID();
         var acc = com.challenge.accounts_movements_service.domain.model.Account.builder()
                 .id(accId)
@@ -104,7 +102,6 @@ class ReportServiceImplTest {
         when(accountRepositoryPort.findAll(eq(clientId), anyInt(), anyInt()))
                 .thenReturn(Mono.just(paged));
 
-        // Mock movimientos
         var mov = com.challenge.accounts_movements_service.domain.model.Movement.builder()
                 .id(UUID.randomUUID())
                 .accountId(accId)
@@ -116,10 +113,8 @@ class ReportServiceImplTest {
         when(movementRepositoryPort.findByAccountIdAndDateRange(eq(accId), eq(start), eq(end)))
                 .thenReturn(reactor.core.publisher.Flux.just(mov));
 
-        // Act
         var resultMono = reportService.getAccountStatement(clientId, start, end, exchange);
 
-        // Assert
         var report = resultMono.block();
         assertNotNull(report);
         assertEquals(clientId, report.getClientId());

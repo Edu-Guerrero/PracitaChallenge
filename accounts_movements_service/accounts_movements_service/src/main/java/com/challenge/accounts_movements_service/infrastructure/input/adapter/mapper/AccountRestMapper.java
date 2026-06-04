@@ -23,18 +23,18 @@ import java.util.UUID;
 public interface AccountRestMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "type", source = "type") // uses map(AccountResponse.TypeEnum) or api AccountType
+    @Mapping(target = "type", source = "type")
     @Mapping(target = "status", expression = "java(Boolean.TRUE.equals(dto.getStatus()))")
-    @Mapping(target = "currentBalance", source = "initialBalance") // inicia igual al saldo inicial
+    @Mapping(target = "currentBalance", source = "initialBalance")
     Account toDomain(CreateAccountRequest dto);
 
     @Mapping(target = "id", source = "accountId")
-    @Mapping(target = "type", source = "dto.type") // uses map(...)
+    @Mapping(target = "type", source = "dto.type")
     @Mapping(target = "status", expression = "java(Boolean.TRUE.equals(dto.getStatus()))")
     @Mapping(target = "currentBalance", ignore = true)
     Account toDomain(UUID accountId, UpdateAccountRequest dto);
 
-    @Mapping(target = "type", source = "type") // uses map(AccountType)
+    @Mapping(target = "type", source = "type")
     AccountResponse toResponse(Account domain);
 
     @Mapping(target = "content", source = "content")
@@ -51,7 +51,6 @@ public interface AccountRestMapper {
         };
     }
 
-    // Domain -> API
     default com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.AccountType map(AccountType domainType) {
         if (domainType == null) return null;
         return switch (domainType) {

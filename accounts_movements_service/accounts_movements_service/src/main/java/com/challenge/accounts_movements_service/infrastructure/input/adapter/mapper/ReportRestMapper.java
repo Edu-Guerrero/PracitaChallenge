@@ -1,12 +1,12 @@
 package com.challenge.accounts_movements_service.infrastructure.input.adapter.mapper;
 
-import com.challenge.accounts_movements_service.domain.model.AccountStatementReport; // DOMAIN
-import com.challenge.accounts_movements_service.domain.model.AccountStatementReportAccount; // DOMAIN
-import com.challenge.accounts_movements_service.domain.model.AccountStatementReportMovement; // DOMAIN
+import com.challenge.accounts_movements_service.domain.model.AccountStatementReport;
+import com.challenge.accounts_movements_service.domain.model.AccountStatementReportAccount;
+import com.challenge.accounts_movements_service.domain.model.AccountStatementReportMovement;
 import com.challenge.accounts_movements_service.domain.model.AccountType;
 import com.challenge.accounts_movements_service.domain.model.MovementType;
-import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.AccountStatementAccount; // API DTO
-import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.MovementResponse; // API DTO
+import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.AccountStatementAccount;
+import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.MovementResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -22,7 +22,6 @@ import java.util.UUID;
 )
 public interface ReportRestMapper {
 
-    // Root: Domain -> API
     @Mapping(target = "clientId", source = "clientId")
     @Mapping(target = "startDate", source = "startDate")
     @Mapping(target = "endDate", source = "endDate")
@@ -30,7 +29,6 @@ public interface ReportRestMapper {
     com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.AccountStatementReport
     toResponse(AccountStatementReport domain);
 
-    // Account item: Domain -> API
     @Mapping(target = "accountId", source = "accountId")
     @Mapping(target = "accountNumber", source = "accountNumber")
     @Mapping(target = "type", source = "type")
@@ -39,10 +37,7 @@ public interface ReportRestMapper {
     @Mapping(target = "movements", expression = "java(toMovementResponses(domain.getAccountId(), domain.getMovements()))")
     AccountStatementAccount toResponse(AccountStatementReportAccount domain);
 
-    /**
-     * Movements inside report:
-     * Domain movement does NOT contain accountId, so we inject it from the parent account.
-     */
+
     default List<MovementResponse> toMovementResponses(UUID accountId, List<AccountStatementReportMovement> movements) {
         if (movements == null) return List.of();
         return movements.stream()
@@ -58,7 +53,6 @@ public interface ReportRestMapper {
     @Mapping(target = "balanceAfter", source = "movement.balanceAfter")
     MovementResponse toResponse(UUID accountId, AccountStatementReportMovement movement);
 
-    // Enum mapping Domain -> API
     default com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.AccountType map(AccountType domainType) {
         if (domainType == null) return null;
         return switch (domainType) {

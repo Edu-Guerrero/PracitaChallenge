@@ -31,7 +31,6 @@ import static com.challenge.customer_service.infrastructure.utils.Constants.*;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 400 - Bean Validation (DTO OpenAPI)
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<ApiError>> handleBindException(WebExchangeBindException ex, ServerWebExchange exchange) {
         String path = exchange.getRequest().getPath().value();
@@ -47,12 +46,11 @@ public class GlobalExceptionHandler {
         apiError.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
         apiError.setMessage(MSG_VALIDATION_FAILED);
         apiError.setPath(path);
-        apiError.setDetails(details); // <-- FIX REAL
+        apiError.setDetails(details);
 
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError));
     }
 
-    // 400 - Validation in application/domain
     @ExceptionHandler(DomainValidationException.class)
     public Mono<ResponseEntity<ApiError>> handleBadRequest(DomainValidationException ex, ServerWebExchange exchange) {
         log.warn("Domain validation failed. path={} message={}",
@@ -61,7 +59,6 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), exchange);
     }
 
-    // 400 - JSON/Enum invalid
     @ExceptionHandler({DecodingException.class, IllegalArgumentException.class})
     public Mono<ResponseEntity<ApiError>> handleDecoding(Exception ex, ServerWebExchange exchange) {
         log.warn("Invalid request payload. path={} message={}",
@@ -70,7 +67,6 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.BAD_REQUEST, MSG_INVALID_REQUEST_PAYLOAD, exchange);
     }
 
-    // 404
     @ExceptionHandler(CustomerNotFoundException.class)
     public Mono<ResponseEntity<ApiError>> handleNotFound(CustomerNotFoundException ex, ServerWebExchange exchange) {
         log.warn("Not found. path={} message={}",
@@ -79,7 +75,6 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.NOT_FOUND, ex.getMessage(), exchange);
     }
 
-    // 409 - business
     @ExceptionHandler(DuplicatedIdentificationException.class)
     public Mono<ResponseEntity<ApiError>> handleConflict(DuplicatedIdentificationException ex, ServerWebExchange exchange) {
         log.warn("Conflict. path={} message={}",
@@ -88,7 +83,6 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.CONFLICT, ex.getMessage(), exchange);
     }
 
-    // 409 - DB constraints
     @ExceptionHandler(DataIntegrityViolationException.class)
     public Mono<ResponseEntity<ApiError>> handleDataIntegrity(DataIntegrityViolationException ex, ServerWebExchange exchange) {
         ex.getMostSpecificCause();
@@ -128,7 +122,6 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.BAD_REQUEST, MSG_INVALID_REQUEST_PAYLOAD, exchange);
     }
 
-    // 500 - only here we log stacktrace
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<ApiError>> handleGeneric(Exception ex, ServerWebExchange exchange) {
         log.error("Unhandled error. path={} method={} message={}",

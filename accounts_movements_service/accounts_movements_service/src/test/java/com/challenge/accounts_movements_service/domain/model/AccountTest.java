@@ -33,7 +33,6 @@ class AccountTest {
         assertTrue(account.isStatus());
     }
 
-    // Lombok @Setter/@Getter should work
     @Test
     void shouldSetAndGetFields() {
         Account account = new Account();

@@ -184,7 +184,7 @@ class GlobalExceptionHandlerTest {
                     assertNotNull(body.getDetails());
                     assertEquals(2, body.getDetails().size());
 
-                    // Validación suave: existen ambos fields
+
                     List<String> fields = body.getDetails().stream().map(ApiErrorDetailsInner::getField).toList();
                     assertTrue(fields.contains("person.name"));
                     assertTrue(fields.contains("person.phone"));
@@ -196,7 +196,6 @@ class GlobalExceptionHandlerTest {
     void handleBindExceptionShouldReturn400AndMapFieldErrorsToDetails() {
         ServerWebExchange exchange = exchangeForPath("/customers");
 
-        // Creamos un WebExchangeBindException con mocks, suficiente para que el handler lea getFieldErrors()
         WebExchangeBindException ex = mock(WebExchangeBindException.class);
         when(ex.getErrorCount()).thenReturn(2);
 
@@ -240,15 +239,11 @@ class GlobalExceptionHandlerTest {
         when(request.getPath()).thenReturn(requestPath);
         when(requestPath.value()).thenReturn(path);
 
-        // Solo se usa en handleGeneric
         when(request.getMethod()).thenReturn(HttpMethod.GET);
 
         return exchange;
     }
 
-    /**
-     * Mock mínimo de ConstraintViolation para mapear field + issue.
-     */
     private ConstraintViolation<?> constraintViolation(String propertyPath, String message) {
         ConstraintViolation<?> v = mock(ConstraintViolation.class);
         when(v.getMessage()).thenReturn(message);

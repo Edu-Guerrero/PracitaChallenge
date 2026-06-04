@@ -15,8 +15,6 @@ public class Constants {
     public static final String MSG_CONFLICT_CURRENT_STATE = "Conflict with current state";
     public static final String MSG_CUSTOMER_ID_REQUIRED_FOR_UPDATE = "customer.id is required for update";
     public static final String MSG_CUSTOMER_NOT_FOUND_PREFIX = "Customer not found: ";
-    public static final int DEFAULT_PAGE = 0;
-    public static final int DEFAULT_SIZE = 20;
     public static final String PATH_API_V1_CUSTOMERS = "/api/v1/customers";
 
 

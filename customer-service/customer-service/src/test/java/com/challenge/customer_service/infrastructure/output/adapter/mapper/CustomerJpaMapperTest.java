@@ -80,7 +80,6 @@ class CustomerJpaMapperTest {
         assertNotNull(entity.getPerson(), "PersonEntity must be created");
 
         assertAll(
-                // Importante: el mapper NO setea customerEntity.id, solo person.id
                 () -> assertNull(entity.getId(), "CustomerEntity id is not set by mapper (MapsId expects it from Person)"),
                 () -> assertEquals(id, entity.getPerson().getId()),
                 () -> assertEquals("Carlos", entity.getPerson().getName()),
@@ -120,7 +119,6 @@ class CustomerJpaMapperTest {
                 .status(true)
                 .build();
 
-        // Debe no lanzar excepción
         assertDoesNotThrow(() -> CustomerJpaMapper.applyToExistingEntity(domain, null));
     }
 
@@ -129,7 +127,7 @@ class CustomerJpaMapperTest {
         UUID targetId = UUID.randomUUID();
 
         Customer domain = Customer.builder()
-                .id(UUID.randomUUID()) // no se usa aquí para el ID del person, se usa target.id
+                .id(UUID.randomUUID())
                 .person(Person.builder()
                         .name("Sofia")
                         .gender(Gender.FEMALE)

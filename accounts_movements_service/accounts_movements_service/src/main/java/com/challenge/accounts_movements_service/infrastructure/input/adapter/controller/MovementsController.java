@@ -1,6 +1,6 @@
 package com.challenge.accounts_movements_service.infrastructure.input.adapter.controller;
 
-import com.challenge.accounts_movements_service.application.input.port.MovementInputPort; // AJUSTA si tu interfaz se llama distinto
+import com.challenge.accounts_movements_service.application.input.port.MovementInputPort;
 import com.challenge.accounts_movements_service.infrastructure.input.adapter.mapper.MovementRestMapper;
 import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.MovementsApi;
 import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.CreateMovementRequest;
@@ -40,7 +40,7 @@ public class MovementsController implements MovementsApi {
         log.info("HTTP GET /movements accountId={} startDate={} endDate={} page={} size={}",
                 accountId, startDate, endDate, p, s);
 
-        return movementService.list(accountId, startDate, endDate, p, s) // Mono<PagedResult<Movement>>
+        return movementService.list(accountId, startDate, endDate, p, s)
                 .map(movementRestMapper::toPagedResponse)
                 .map(ResponseEntity::ok);
     }

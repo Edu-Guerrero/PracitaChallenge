@@ -40,7 +40,6 @@ public class CustomeRepositoryAdapter implements CustomerRepositoryPort {
                     CustomerEntity existing = customerJpaRepository.findByIdWithPerson(customer.getId())
                             .orElseThrow(() -> new IllegalStateException(MSG_CUSTOMER_NOT_FOUND_PREFIX + customer.getId()));
 
-                    // Apply changes to the managed entity (NO new entity graph)
                     CustomerJpaMapper.applyToExistingEntity(customer, existing);
 
                     CustomerEntity saved = customerJpaRepository.save(existing);
