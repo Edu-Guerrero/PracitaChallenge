@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS person (
   id              UUID PRIMARY KEY,
   name            VARCHAR(120) NOT NULL,
   gender          VARCHAR(20)  NOT NULL,
-  identification  VARCHAR(30)  NOT NULL,
+  identification  VARCHAR(30)  NOT NULL UNIQUE,
   address         VARCHAR(200) NOT NULL,
   phone           VARCHAR(20)  NOT NULL,
 
