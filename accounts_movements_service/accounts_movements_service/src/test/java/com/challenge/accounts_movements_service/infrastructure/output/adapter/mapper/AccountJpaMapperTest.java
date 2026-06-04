@@ -3,7 +3,9 @@ package com.challenge.accounts_movements_service.infrastructure.output.adapter.m
 import com.challenge.accounts_movements_service.domain.model.Account;
 import com.challenge.accounts_movements_service.domain.model.AccountType;
 import com.challenge.accounts_movements_service.infrastructure.output.adapter.entity.AccountEntity;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -11,6 +13,13 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AccountJpaMapperTest {
+
+    private AccountJpaMapper accountJpaMapper;
+
+    @BeforeEach
+    void setUp() {
+        accountJpaMapper = Mappers.getMapper(AccountJpaMapper.class);
+    }
 
     @Test
     void shouldMapDomainToEntityAndBack() {
@@ -24,7 +33,7 @@ class AccountJpaMapperTest {
                 .status(true)
                 .build();
 
-        AccountEntity entity = AccountJpaMapper.toEntity(domain);
+        AccountEntity entity = accountJpaMapper.toEntity(domain);
         assertNotNull(entity);
         assertEquals(domain.getId(), entity.getId());
         assertEquals(domain.getCustomerId(), entity.getCustomerId());
@@ -33,7 +42,7 @@ class AccountJpaMapperTest {
         assertEquals(domain.getInitialBalance(), entity.getInitialBalance());
         assertTrue(entity.isStatus());
 
-        Account mappedBack = AccountJpaMapper.toDomain(entity);
+        Account mappedBack = accountJpaMapper.toDomain(entity);
         assertNotNull(mappedBack);
         assertEquals(entity.getId(), mappedBack.getId());
         assertEquals(entity.getAccountNumber(), mappedBack.getAccountNumber());
@@ -42,8 +51,8 @@ class AccountJpaMapperTest {
 
     @Test
     void shouldReturnNullWhenInputIsNull() {
-        assertNull(AccountJpaMapper.toEntity(null));
-        assertNull(AccountJpaMapper.toDomain(null));
+        assertNull(accountJpaMapper.toEntity(null));
+        assertNull(accountJpaMapper.toDomain(null));
     }
 
     @Test
@@ -58,7 +67,7 @@ class AccountJpaMapperTest {
                 .build();
 
         AccountEntity target = AccountEntity.builder().build();
-        AccountJpaMapper.applyToExistingEntity(source, target);
+        accountJpaMapper.updateEntityFromDomain(source, target);
 
         assertEquals(source.getCustomerId(), target.getCustomerId());
         assertEquals(source.getAccountNumber(), target.getAccountNumber());

@@ -3,7 +3,9 @@ package com.challenge.accounts_movements_service.infrastructure.output.adapter.m
 import com.challenge.accounts_movements_service.domain.model.Movement;
 import com.challenge.accounts_movements_service.domain.model.MovementType;
 import com.challenge.accounts_movements_service.infrastructure.output.adapter.entity.MovementEntity;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,6 +14,13 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MovementJpaMapperTest {
+
+    private MovementJpaMapper movementJpaMapper;
+
+    @BeforeEach
+    void setUp() {
+        movementJpaMapper = Mappers.getMapper(MovementJpaMapper.class);
+    }
 
     @Test
     void shouldMapDomainToEntityAndBack() {
@@ -24,7 +33,7 @@ class MovementJpaMapperTest {
                 .balanceAfter(BigDecimal.valueOf(20.5))
                 .build();
 
-        MovementEntity entity = MovementJpaMapper.toEntity(domain);
+        MovementEntity entity = movementJpaMapper.toEntity(domain);
         assertNotNull(entity);
         assertEquals(domain.getId(), entity.getId());
         assertEquals(domain.getAccountId(), entity.getAccountId());
@@ -33,7 +42,7 @@ class MovementJpaMapperTest {
         assertEquals(domain.getValue(), entity.getValue());
         assertEquals(domain.getBalanceAfter(), entity.getBalanceAfter());
 
-        Movement mappedBack = MovementJpaMapper.toDomain(entity);
+        Movement mappedBack = movementJpaMapper.toDomain(entity);
         assertNotNull(mappedBack);
         assertEquals(entity.getId(), mappedBack.getId());
         assertEquals(entity.getAccountId(), mappedBack.getAccountId());
@@ -42,7 +51,7 @@ class MovementJpaMapperTest {
 
     @Test
     void shouldReturnNullWhenInputIsNull() {
-        assertNull(MovementJpaMapper.toEntity(null));
-        assertNull(MovementJpaMapper.toDomain(null));
+        assertNull(movementJpaMapper.toEntity(null));
+        assertNull(movementJpaMapper.toDomain(null));
     }
 }

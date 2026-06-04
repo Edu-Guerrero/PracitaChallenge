@@ -18,19 +18,20 @@ import reactor.core.scheduler.Schedulers;
 public class AccountRepositoryAdapter implements AccountRepositoryPort {
 
     private final AccountJpaRepository accountJpaRepository;
+    private final AccountJpaMapper accountJpaMapper;
 
     @Override
     public Mono<Account> save(Account account) {
-        return Mono.fromCallable(() -> accountJpaRepository.save(AccountJpaMapper.toEntity(account)))
+        return Mono.fromCallable(() -> accountJpaRepository.save(accountJpaMapper.toEntity(account)))
                 .subscribeOn(Schedulers.boundedElastic())
-                .map(AccountJpaMapper::toDomain);
+                .map(accountJpaMapper::toDomain);
     }
 
     @Override
     public Mono<Account> findById(UUID accountId) {
         return Mono.fromCallable(() -> accountJpaRepository.findById(accountId).orElse(null))
                 .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(e -> e == null ? Mono.empty() : Mono.just(AccountJpaMapper.toDomain(e)));
+                .flatMap(e -> e == null ? Mono.empty() : Mono.just(accountJpaMapper.toDomain(e)));
     }
 
     @Override
@@ -56,7 +57,7 @@ public class AccountRepositoryAdapter implements AccountRepositoryPort {
                             : accountJpaRepository.findAllByCustomerId(customerId, pageable);
 
                     var content = resultPage.getContent().stream()
-                            .map(AccountJpaMapper::toDomain)
+                            .map(accountJpaMapper::toDomain)
                             .toList();
 
                     return new PagedResult<>(

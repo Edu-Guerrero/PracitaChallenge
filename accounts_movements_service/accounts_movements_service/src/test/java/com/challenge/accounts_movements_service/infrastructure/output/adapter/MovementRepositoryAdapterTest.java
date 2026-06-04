@@ -8,6 +8,7 @@ import com.challenge.accounts_movements_service.infrastructure.output.adapter.ma
 import com.challenge.accounts_movements_service.infrastructure.output.adapter.repository.MovementJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,10 +30,14 @@ class MovementRepositoryAdapterTest {
     private MovementJpaRepository repository;
     private MovementRepositoryAdapter adapter;
 
+    @Mock
+    private MovementJpaMapper mapper;
+
     @BeforeEach
     void setUp() {
         repository = mock(MovementJpaRepository.class);
-        adapter = new MovementRepositoryAdapter(repository);
+        mapper = mock(MovementJpaMapper.class);
+        adapter = new MovementRepositoryAdapter(repository, mapper);
     }
 
     @Test
@@ -45,9 +50,19 @@ class MovementRepositoryAdapterTest {
                 .value(BigDecimal.valueOf(10))
                 .balanceAfter(BigDecimal.valueOf(20))
                 .build();
-        MovementEntity entity = MovementJpaMapper.toEntity(domain);
+
+        MovementEntity entity = MovementEntity.builder()
+                .id(domain.getId())
+                .accountId(domain.getAccountId())
+                .date(domain.getDate())
+                .type(domain.getType())
+                .value(domain.getValue())
+                .balanceAfter(domain.getBalanceAfter())
+                .build();
 
         when(repository.save(any(MovementEntity.class))).thenReturn(entity);
+        when(mapper.toEntity(domain)).thenReturn(entity);
+        when(mapper.toDomain(entity)).thenReturn(domain);
 
         StepVerifier.create(adapter.save(domain))
                 .expectNextMatches(m -> m.getValue().equals(BigDecimal.valueOf(10)))
@@ -58,9 +73,28 @@ class MovementRepositoryAdapterTest {
 
     @Test
     void findById_shouldReturnDomainMovement() {
-        MovementEntity entity = MovementEntity.builder().id(UUID.randomUUID()).build();
+        UUID id = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        MovementEntity entity = MovementEntity.builder()
+                .id(id)
+                .accountId(accountId)
+                .date(LocalDate.now())
+                .type(MovementType.DEBIT)
+                .value(BigDecimal.TEN)
+                .balanceAfter(BigDecimal.ZERO)
+                .build();
+
+        Movement domain = Movement.builder()
+                .id(id)
+                .accountId(accountId)
+                .date(entity.getDate())
+                .type(entity.getType())
+                .value(entity.getValue())
+                .balanceAfter(entity.getBalanceAfter())
+                .build();
 
         when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(domain);
         StepVerifier.create(adapter.findById(entity.getId()))
                 .expectNextMatches(m -> m.getId().equals(entity.getId()))
                 .verifyComplete();
@@ -109,14 +143,34 @@ class MovementRepositoryAdapterTest {
 
     @Test
     void findByAccountIdAndDateRange_shouldReturnFlux() {
+        UUID id = UUID.randomUUID();
         UUID accId = UUID.randomUUID();
         LocalDate d1 = LocalDate.now().minusDays(2);
         LocalDate d2 = LocalDate.now();
-        List<MovementEntity> entities = List.of(MovementEntity.builder().id(UUID.randomUUID()).build());
-        when(repository.findAllByAccountIdAndDateBetween(accId, d1, d2)).thenReturn(entities);
+        MovementEntity entity = MovementEntity.builder()
+                .id(id)
+                .accountId(accId)
+                .date(d1)
+                .type(MovementType.DEBIT)
+                .value(BigDecimal.TEN)
+                .balanceAfter(BigDecimal.ZERO)
+                .build();
+
+        Movement movement = Movement.builder()
+                .id(id)
+                .accountId(accId)
+                .date(d1)
+                .type(MovementType.DEBIT)
+                .value(BigDecimal.TEN)
+                .balanceAfter(BigDecimal.ZERO)
+                .build();
+
+        when(repository.findAllByAccountIdAndDateBetween(accId, d1, d2)).thenReturn(List.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(movement);
 
         StepVerifier.create(adapter.findByAccountIdAndDateRange(accId, d1, d2))
-                .expectNextCount(entities.size())
+                .expectNextMatches(m -> m != null && m.getId().equals(id))
                 .verifyComplete();
     }
+
 }

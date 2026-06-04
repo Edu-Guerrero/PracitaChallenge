@@ -20,19 +20,20 @@ import reactor.core.scheduler.Schedulers;
 public class MovementRepositoryAdapter implements MovementRepositoryPort {
 
     private final MovementJpaRepository movementJpaRepository;
+    private final MovementJpaMapper movementJpaMapper;
 
     @Override
     public Mono<Movement> save(Movement movement) {
-        return Mono.fromCallable(() -> movementJpaRepository.save(MovementJpaMapper.toEntity(movement)))
+        return Mono.fromCallable(() -> movementJpaRepository.save(movementJpaMapper.toEntity(movement)))
                 .subscribeOn(Schedulers.boundedElastic())
-                .map(MovementJpaMapper::toDomain);
+                .map(movementJpaMapper::toDomain);
     }
 
     @Override
     public Mono<Movement> findById(UUID movementId) {
         return Mono.fromCallable(() -> movementJpaRepository.findById(movementId).orElse(null))
                 .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(e -> e == null ? Mono.empty() : Mono.just(MovementJpaMapper.toDomain(e)));
+                .flatMap(e -> e == null ? Mono.empty() : Mono.just(movementJpaMapper.toDomain(e)));
     }
 
     @Override
@@ -59,7 +60,7 @@ public class MovementRepositoryAdapter implements MovementRepositoryPort {
                                     : movementJpaRepository.findAllByAccountId(accountId, pageable);
 
                     var content = resultPage.getContent().stream()
-                            .map(MovementJpaMapper::toDomain)
+                            .map(movementJpaMapper::toDomain)
                             .toList();
 
                     return new PagedResult<>(
@@ -77,7 +78,7 @@ public class MovementRepositoryAdapter implements MovementRepositoryPort {
         return Mono.fromCallable(() ->
                         movementJpaRepository.findAllByAccountIdAndDateBetween(accountId, startDate, endDate)
                                 .stream()
-                                .map(MovementJpaMapper::toDomain)
+                                .map(movementJpaMapper::toDomain)
                                 .toList()
                 )
                 .subscribeOn(Schedulers.boundedElastic())

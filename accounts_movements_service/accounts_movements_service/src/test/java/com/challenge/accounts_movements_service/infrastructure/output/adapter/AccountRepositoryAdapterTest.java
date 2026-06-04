@@ -7,6 +7,7 @@ import com.challenge.accounts_movements_service.infrastructure.output.adapter.ma
 import com.challenge.accounts_movements_service.infrastructure.output.adapter.repository.AccountJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,10 +26,14 @@ class AccountRepositoryAdapterTest {
     private AccountJpaRepository repository;
     private AccountRepositoryAdapter adapter;
 
+    @Mock
+    private AccountJpaMapper accountJpaMapper;
+
     @BeforeEach
     void setUp() {
         repository = mock(AccountJpaRepository.class);
-        adapter = new AccountRepositoryAdapter(repository);
+        accountJpaMapper = mock(AccountJpaMapper.class);
+        adapter = new AccountRepositoryAdapter(repository, accountJpaMapper);
     }
 
     @Test
@@ -42,9 +47,20 @@ class AccountRepositoryAdapterTest {
                 .currentBalance(BigDecimal.TEN)
                 .status(true)
                 .build();
-        AccountEntity entity = AccountJpaMapper.toEntity(domain);
+
+        AccountEntity entity = AccountEntity.builder()
+                .id(domain.getId())
+                .customerId(domain.getCustomerId())
+                .accountNumber(domain.getAccountNumber())
+                .type(domain.getType())
+                .initialBalance(domain.getInitialBalance())
+                .currentBalance(domain.getCurrentBalance())
+                .status(domain.isStatus())
+                .build();
 
         when(repository.save(any(AccountEntity.class))).thenReturn(entity);
+        when(accountJpaMapper.toEntity(domain)).thenReturn(entity);
+        when(accountJpaMapper.toDomain(entity)).thenReturn(domain);
 
         StepVerifier.create(adapter.save(domain))
                 .expectNextMatches(acc -> acc.getAccountNumber().equals("1234"))
@@ -55,9 +71,28 @@ class AccountRepositoryAdapterTest {
 
     @Test
     void findById_shouldReturnDomainAccount() {
-        AccountEntity entity = AccountEntity.builder().id(UUID.randomUUID()).build();
+        AccountEntity entity = AccountEntity.builder()
+                .id(UUID.randomUUID())
+                .customerId(UUID.randomUUID())
+                .accountNumber("111")
+                .type(AccountType.SAVINGS)
+                .initialBalance(BigDecimal.ZERO)
+                .currentBalance(BigDecimal.ZERO)
+                .status(true)
+                .build();
+
+        Account domain = Account.builder()
+                .id(entity.getId())
+                .customerId(entity.getCustomerId())
+                .accountNumber(entity.getAccountNumber())
+                .type(entity.getType())
+                .initialBalance(entity.getInitialBalance())
+                .currentBalance(entity.getCurrentBalance())
+                .status(entity.isStatus())
+                .build();
 
         when(repository.findById(entity.getId())).thenReturn(Optional.of(entity));
+        when(accountJpaMapper.toDomain(entity)).thenReturn(domain);
         StepVerifier.create(adapter.findById(entity.getId()))
                 .expectNextMatches(acc -> acc.getId().equals(entity.getId()))
                 .verifyComplete();
