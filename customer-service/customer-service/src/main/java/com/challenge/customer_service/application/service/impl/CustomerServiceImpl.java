@@ -30,7 +30,7 @@ public class CustomerServiceImpl implements CustomerInputPort {
                 .then(Mono.defer(() ->
                         customerRepositoryPort
                                 .existsByIdentification(customer.getPerson().getIdentification())
-                                .flatMap(exists -> exists
+                                .flatMap(exists -> Boolean.TRUE.equals(exists)
                                         ? Mono.error(new DuplicatedIdentificationException(
                                         customer.getPerson().getIdentification()))
                                         : Mono.just(customer)
@@ -77,9 +77,13 @@ public class CustomerServiceImpl implements CustomerInputPort {
                     Mono<Void> uniquenessCheck = Objects.equals(oldIdentification, newIdentification)
                             ? Mono.empty()
                             : customerRepositoryPort.existsByIdentification(newIdentification)
-                            .flatMap(exists -> exists
-                                    ? Mono.error(new DuplicatedIdentificationException(newIdentification))
-                                    : Mono.empty());
+                            .flatMap(exists -> {
+                                if (Boolean.TRUE.equals(exists)) {
+                                    return Mono.error(new DuplicatedIdentificationException(newIdentification));
+                                } else {
+                                    return Mono.empty();
+                                }
+                            });
 
                     return uniquenessCheck.thenReturn(existing);
                 })
