@@ -3,7 +3,6 @@ package com.challenge.accounts_movements_service.application.output.port;
 import com.challenge.accounts_movements_service.application.util.PagedResult;
 import com.challenge.accounts_movements_service.domain.model.Account;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Flux;
 
 import java.util.UUID;
 
