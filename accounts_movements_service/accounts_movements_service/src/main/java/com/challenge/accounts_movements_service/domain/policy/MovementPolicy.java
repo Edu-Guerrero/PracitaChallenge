@@ -9,15 +9,17 @@ import com.challenge.accounts_movements_service.domain.model.MovementType;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import static com.challenge.accounts_movements_service.domain.util.Constants.*;
+
 public class MovementPolicy {
 
     public BigDecimal calculateNewBalance(Account account, MovementType type, BigDecimal value) {
-        Objects.requireNonNull(account, "account is required");
-        Objects.requireNonNull(type, "movement type is required");
+        Objects.requireNonNull(account, ACCOUNT_REQUIRED);
+        Objects.requireNonNull(type, MOVEMENT_TYPE_REQUIRED);
         requirePositive(value);
 
         if (!account.isStatus()) {
-            throw new AccountInactiveException("Account is inactive");
+            throw new AccountInactiveException(ACCOUNT_INACTIVE);
         }
 
         BigDecimal current = defaultZero(account.getCurrentBalance());
@@ -27,7 +29,7 @@ public class MovementPolicy {
             case DEBIT -> {
                 BigDecimal newBalance = current.subtract(value);
                 if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-                    throw new InsufficientFundsException("Saldo no disponible");
+                    throw new InsufficientFundsException(INSUFFICIENT_FUNDS);
                 }
                 yield newBalance;
             }
@@ -36,7 +38,7 @@ public class MovementPolicy {
 
     private static void requirePositive(BigDecimal value) {
         if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DomainValidationException("movement value must be > 0");
+            throw new DomainValidationException(MOVEMENT_VALUE_POSITIVE);
         }
     }
 

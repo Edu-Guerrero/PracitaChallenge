@@ -19,6 +19,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static com.challenge.accounts_movements_service.application.util.Constants.*;
+
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportInputPort {
@@ -30,16 +32,16 @@ public class ReportServiceImpl implements ReportInputPort {
     @Override
     public Mono<AccountStatementReport> getAccountStatement(UUID clientId, LocalDate startDate, LocalDate endDate, ServerWebExchange exchange) {
         if (clientId == null) {
-            return Mono.error(new DomainValidationException("clientId is required"));
+            return Mono.error(new DomainValidationException(CLIENT_ID_REQUIRED));
         }
         if (startDate == null) {
-            return Mono.error(new DomainValidationException("startDate is required"));
+            return Mono.error(new DomainValidationException(START_DATE_REQUIRED));
         }
         if (endDate == null) {
-            return Mono.error(new DomainValidationException("endDate is required"));
+            return Mono.error(new DomainValidationException(END_DATE_REQUIRED));
         }
         if (endDate.isBefore(startDate)) {
-            return Mono.error(new DomainValidationException("endDate must be >= startDate"));
+            return Mono.error(new DomainValidationException(END_DATE_BEFORE_START));
         }
 
         return customerRepositoryPort.getCustomerById(exchange, clientId)

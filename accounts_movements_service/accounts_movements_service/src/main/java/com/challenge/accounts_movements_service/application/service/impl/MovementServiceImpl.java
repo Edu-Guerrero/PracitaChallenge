@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static com.challenge.accounts_movements_service.application.util.Constants.*;
+
 @Service
 @RequiredArgsConstructor
 public class MovementServiceImpl implements MovementInputPort {
@@ -28,7 +30,7 @@ public class MovementServiceImpl implements MovementInputPort {
     @Override
     public Mono<Movement> create(Movement movement) {
         return Mono.justOrEmpty(movement)
-                .switchIfEmpty(Mono.error(new DomainValidationException("movement is required")))
+                .switchIfEmpty(Mono.error(new DomainValidationException(MOVEMENT_REQUIRED)))
                 .flatMap(this::validateForCreate)
                 .flatMap(mv ->
                         accountRepositoryPort.findById(mv.getAccountId())
@@ -40,10 +42,10 @@ public class MovementServiceImpl implements MovementInputPort {
     @Override
     public Mono<Movement> update(UUID movementId, Movement movement) {
         if (movementId == null) {
-            return Mono.error(new DomainValidationException("movementId is required"));
+            return Mono.error(new DomainValidationException(MOVEMENT_ID_REQUIRED));
         }
         return Mono.justOrEmpty(movement)
-                .switchIfEmpty(Mono.error(new DomainValidationException("movement is required")))
+                .switchIfEmpty(Mono.error(new DomainValidationException(MOVEMENT_REQUIRED)))
                 .flatMap(mv -> movementRepositoryPort.findById(movementId)
                         .switchIfEmpty(Mono.error(new com.challenge.accounts_movements_service.domain.exception.MovementNotFoundException(movementId)))
                         .flatMap(existing -> {
@@ -52,7 +54,7 @@ public class MovementServiceImpl implements MovementInputPort {
                             if (mv.getAccountId() == null) {
                                 mv.setAccountId(existing.getAccountId());
                             } else if (!mv.getAccountId().equals(existing.getAccountId())) {
-                                return Mono.error(new DomainValidationException("accountId cannot be changed"));
+                                return Mono.error(new DomainValidationException(ACCOUNT_ID_CANNOT_CHANGE));
                             }
 
                             return validateForUpdate(mv)
@@ -65,7 +67,7 @@ public class MovementServiceImpl implements MovementInputPort {
     @Override
     public Mono<Void> delete(UUID movementId) {
         if (movementId == null) {
-            return Mono.error(new DomainValidationException("movementId is required"));
+            return Mono.error(new DomainValidationException(MOVEMENT_ID_REQUIRED));
         }
 
         return movementRepositoryPort.findById(movementId)
@@ -76,7 +78,7 @@ public class MovementServiceImpl implements MovementInputPort {
     @Override
     public Mono<Movement> getById(UUID movementId) {
         if (movementId == null) {
-            return Mono.error(new DomainValidationException("movementId is required"));
+            return Mono.error(new DomainValidationException(MOVEMENT_ID_REQUIRED));
         }
         return movementRepositoryPort.findById(movementId)
                 .switchIfEmpty(Mono.error(new com.challenge.accounts_movements_service.domain.exception.MovementNotFoundException(movementId)));
@@ -85,10 +87,10 @@ public class MovementServiceImpl implements MovementInputPort {
     @Override
     public Mono<PagedResult<Movement>> list(UUID accountId, LocalDate startDate, LocalDate endDate, int page, int size) {
         if (page < 0) {
-            return Mono.error(new DomainValidationException("page must be >= 0"));
+            return Mono.error(new DomainValidationException(PAGE_MIN_ZERO));
         }
         if (size <= 0 || size > 100) {
-            return Mono.error(new DomainValidationException("size must be between 1 and 100"));
+            return Mono.error(new DomainValidationException(SIZE_RANGE));
         }
 
         return movementRepositoryPort.findAll(accountId, startDate, endDate, page, size);
@@ -96,24 +98,24 @@ public class MovementServiceImpl implements MovementInputPort {
 
 
     private Mono<Movement> validateForCreate(Movement mv) {
-        if (mv.getAccountId() == null) return Mono.error(new DomainValidationException("accountId is required"));
-        if (mv.getDate() == null) return Mono.error(new DomainValidationException("date is required"));
-        if (mv.getType() == null) return Mono.error(new DomainValidationException("type is required"));
-        if (mv.getValue() == null) return Mono.error(new DomainValidationException("value is required"));
+        if (mv.getAccountId() == null) return Mono.error(new DomainValidationException(ACCOUNT_ID_REQUIRED));
+        if (mv.getDate() == null) return Mono.error(new DomainValidationException(DATE_REQUIRED));
+        if (mv.getType() == null) return Mono.error(new DomainValidationException(TYPE_REQUIRED));
+        if (mv.getValue() == null) return Mono.error(new DomainValidationException(VALUE_REQUIRED));
 
         if (mv.getValue().compareTo(BigDecimal.ZERO) <= 0) {
-            return Mono.error(new DomainValidationException("movement value must be > 0"));
+            return Mono.error(new DomainValidationException(MOVEMENT_VALUE_POSITIVE));
         }
 
         return Mono.just(mv);
     }
 
     private Mono<Void> validateForUpdate(Movement mv) {
-        if (mv.getDate() == null) return Mono.error(new DomainValidationException("date is required"));
-        if (mv.getType() == null) return Mono.error(new DomainValidationException("type is required"));
-        if (mv.getValue() == null) return Mono.error(new DomainValidationException("value is required"));
+        if (mv.getDate() == null) return Mono.error(new DomainValidationException(DATE_REQUIRED));
+        if (mv.getType() == null) return Mono.error(new DomainValidationException(TYPE_REQUIRED));
+        if (mv.getValue() == null) return Mono.error(new DomainValidationException(VALUE_REQUIRED));
         if (mv.getValue().compareTo(BigDecimal.ZERO) <= 0) {
-            return Mono.error(new DomainValidationException("movement value must be > 0"));
+            return Mono.error(new DomainValidationException(MOVEMENT_VALUE_POSITIVE));
         }
         return Mono.empty();
     }

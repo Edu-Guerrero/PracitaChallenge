@@ -21,6 +21,8 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    public static final String HTTP_MESSAGE = "HTTP {} {} -> {} {} | message={}";
+
     @ExceptionHandler(DomainValidationException.class)
     public Mono<ResponseEntity<ApiError>> handleDomainValidation(DomainValidationException ex, ServerWebExchange exchange) {
         return Mono.just(build(exchange, HttpStatus.BAD_REQUEST, ex.getMessage(), null, ex));
@@ -113,13 +115,13 @@ public class GlobalExceptionHandler {
         String path = exchange.getRequest().getPath().value();
 
         if (status.is5xxServerError()) {
-            log.error("HTTP {} {} -> {} {} | message={}", method, path, status.value(), status.getReasonPhrase(), message, exForLog);
+            log.error(HTTP_MESSAGE, method, path, status.value(), status.getReasonPhrase(), message, exForLog);
         } else if (status == HttpStatus.CONFLICT) {
-            log.warn("HTTP {} {} -> {} {} | message={}", method, path, status.value(), status.getReasonPhrase(), message);
+            log.warn(HTTP_MESSAGE, method, path, status.value(), status.getReasonPhrase(), message);
         } else if (status == HttpStatus.NOT_FOUND) {
-            log.warn("HTTP {} {} -> {} {} | message={}", method, path, status.value(), status.getReasonPhrase(), message);
+            log.warn(HTTP_MESSAGE, method, path, status.value(), status.getReasonPhrase(), message);
         } else {
-            log.info("HTTP {} {} -> {} {} | message={}", method, path, status.value(), status.getReasonPhrase(), message);
+            log.info(HTTP_MESSAGE, method, path, status.value(), status.getReasonPhrase(), message);
         }
 
         return ResponseEntity.status(status).body(apiError);
