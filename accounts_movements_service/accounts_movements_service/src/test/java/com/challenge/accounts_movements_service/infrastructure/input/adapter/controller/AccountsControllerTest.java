@@ -10,11 +10,10 @@ import com.challenge.accounts_movements_service.infrastructure.input.adapter.res
 import com.challenge.accounts_movements_service.infrastructure.input.adapter.rest.customer_service.bean.UpdateAccountRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,7 +81,7 @@ class AccountsControllerTest {
 
         var result = controller.createAccount(req, exchange).block();
         assertNotNull(result);
-        assertEquals("/accounts/" + accId, result.getHeaders().getLocation().toString());
+        assertEquals("/accounts/" + accId, Objects.requireNonNull(result.getHeaders().getLocation()).toString());
         assertSame(apiResp, result.getBody());
     }
 
@@ -111,6 +110,6 @@ class AccountsControllerTest {
 
         var result = controller.deleteAccount(accId, exchange).block();
         assertNotNull(result);
-        assertEquals(204, result.getStatusCodeValue());
+        assertEquals(204, result.getStatusCode().value());
     }
 }
