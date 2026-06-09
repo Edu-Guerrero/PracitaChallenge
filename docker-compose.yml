@@ -12,5 +12,33 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./BaseDatos.sql:/docker-entrypoint-initdb.d/BaseDatos.sql:ro
 
+  customer-service:
+    build:
+      context: ./customer-service/customer-service
+    container_name: customer-service
+    depends_on:
+      - postgres
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/challenge_db
+      SPRING_DATASOURCE_USERNAME: challenge_user
+      SPRING_DATASOURCE_PASSWORD: challenge_pwd
+    ports:
+      - "8080:8080" # Externo:Interno. 8080 en tu host, 8080 en el contenedor
+  
+  accounts_movements_service:
+    build:
+      context: ./accounts_movements_service/accounts_movements_service
+    container_name: accounts_movements_service
+    depends_on:
+      - postgres
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/challenge_db
+      SPRING_DATASOURCE_USERNAME: challenge_user
+      SPRING_DATASOURCE_PASSWORD: challenge_pwd
+    ports:
+      - "8081:8081" # Externo:Interno. 8081 en tu host, 8081 en el contenedor
+
 volumes:
   pgdata: {}
